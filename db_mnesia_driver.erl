@@ -1,4 +1,4 @@
--module(db_riak_driver).
+-module(db_mnesia_driver).
 -compile(export_all).
 
 

@@ -1,5 +1,6 @@
 -module(db_riak_driver).
 -compile(export_all).
+-import(zutils,[uuid/0]).
 
 %------------------------------------------------------------------------------------
 connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
@@ -28,7 +29,7 @@ set(Connection, Key, Value) ->      RiakClient = connect( Connection ),
                                     RiakClient:put( Item , 1),
                                     ok.
 %------------------------------------------------------------------------------------
-create(Connection)            -> UUID = zql:uuid(),
+create(Connection)            -> UUID = uuid(),
                                  Key = list_to_binary(UUID),
                                  RiakClient = connect( Connection ),
                                  Bucket = proplists:get_value( bucket, Connection ),
