@@ -1,4 +1,4 @@
--module(zql_print).
+-module(zprint).
 -compile(export_all).
 
 nl() -> println("").
