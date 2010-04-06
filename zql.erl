@@ -3,6 +3,8 @@
 -import(zprint,[println/1,print_number/1]).
 -import(zutils,[uuid/0]).
 
+test() -> ok.
+
 h() -> zhelp:help(zql).
 
 print(Connection, RecordId) -> 
