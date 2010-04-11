@@ -1,13 +1,54 @@
 -module(zql).
 -compile(export_all).
--import(zprint,[println/1,print_number/1]).
+-import(zprint,[println/1,p/1,print_number/1]).
 -import(zutils,[uuid/0]).
 
-test() -> ok.
+help() ->           p("-----------------------------------------------------------------------------"),
+                    p("-                                MODULE zql                                 -"),
+                    p("-                   Erlang interface to the ZQL system                      -"),
+                    p("-----------------------------------------------------------------------------"),
 
-h() -> zhelp:help(zql).
+                    p("print(Connection, ID)                             print record with key ID"),
+                    p("print_all(Connection)                             print all records"),
+                    
+                    println("C = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}],"),
+		    println(""),
+		    println("zql:set(C, \"boy\", \"Is here\"),"),
+		    println("Value = zql:get(C, \"boy\")."),
+		    println(""),
+                    println(">> \"Is here\"\n\n"),
+
+                    println("C = zql:local().                     -- gets a connection locally"),
+                    println("zql:set(C, Key, Value ).             -- set a key / value"),
+
+                    println("zql:get(C, Key).                     -- get a value"),
+                    println("zql:exists(C, Key).                  -- true / false"),
+                    println("zql:delete(C, Key).                  -- ok"),
+                    println("zql:delete_all(C, yes_im_sure).      -- ok"),
+                    println("zql:ls(C).                           -- get all keys as a list"),
+
+                    println("R = zql:create(C).                   -- create a record and return it's unique ID"),
+                    println("zql:print(C,R).                      -- prints the record in a screen friendly format"),
+                    println("zql:set(C,R,type,person).            -- sets the type of the record to a person"),
+
+     		    println("-------------------------------------------------------------------------"),
+                    ok.
+
+help(Command)       ->  HelpFunctionName = atom_to_list(Command) ++ "_help",
+                        apply(zql, list_to_atom(HelpFunctionName), []).
+
+
+
+
+print_help()      -> p("---------------------------------------------------------------------"),
+                     p("-                    print(Connection, RecordID)                    -"),
+                     p("-                                                                   -"),
+                     p("-             Prints the record with ID of RecordID                 -"),
+                     p("-                                                                   -"),
+                     p("---------------------------------------------------------------------").
 
 print(Connection, RecordId) -> 
+
                   Record = get(Connection, RecordId),
                   println("-------------------------"),
                   io:format("ID:~s~n", [RecordId]),
@@ -17,9 +58,27 @@ print(Connection, RecordId) ->
                   end,
                   println("").
 
+
+
+print_all_help()  -> p("---------------------------------------------------------------------"),
+                     p("-                    print_all(Connection)                          -"),
+                     p("-                                                                   -"),
+                     p("-       Prints all the records to the console                       -"),
+                     p("-                                                                   -"),
+                     p("---------------------------------------------------------------------").
+
 print_all(C) -> PrintRecord = fun(RecordId) -> print(C,RecordId) end,
                 lists:foreach(PrintRecord, zql:ls(C)).
 
+
+
+
+match_help()              -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 
 
 %match(RecordData,Queries) -> lists:foreach( fun(Property) -> match_property(Property,Queries) end , RecordData ).
@@ -30,17 +89,61 @@ match(Value, equals, Value) -> true;
 match(_Value, equals, _ExpectedValue) -> false.
 
 
+
+
+connect_help()    -> p("---------------------------------------------------------------------"),
+                     p("-                    connect(ConnectionArgs)                        -"),
+                     p("-                                                                   -"),
+                     p("-          connects to the database and returns the connection      -"),
+                     p("-                                                                   -"),
+                     p("---------------------------------------------------------------------").
+
 connect(ConnectionArgs) -> Driver =
                            proplists:get_value(driver,ConnectionArgs),
                            Driver.
+
+
+
+
+get_help()        -> p("---------------------------------------------------------------------"),
+                     p("-                    get(Connection, Key)                           -"),
+                     p("-                                                                   -"),
+                     p("-           gets the value from the database for Key                -"),
+                     p("-                                                                   -"),
+                     p("---------------------------------------------------------------------").
 
 get(Connection,Key) ->                     Driver = connect(Connection),
                                            Value = apply(Driver, get, [Connection, Key]),
                                            Value.
 
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                 get_property_names(Connection,Key)                -"),
+                             p("-                                                                   -"),
+                             p("-     gets all the properties for the record identified by Key      -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
+
 get_property_names(Connection,Key) ->      Driver = connect(Connection),
                                            PropertyNames = apply(Driver, get_properties, [Connection, Key]),
                                            PropertyNames.
+
+
+
+
+
+
+get_property_help() -> p("---------------------------------------------------------------------"),
+                       p("-                 get_property(Connection,Key,PropertyName)         -"),
+                       p("-                                                                   -"),
+                       p("- gets the value of the named property for record identified by Key -"),
+                       p("-                                                                   -"),
+                       p("---------------------------------------------------------------------").
 
 get_property(C,Key,PropertyName) ->        Driver = connect(C),
                                            Data = get(C,Key),
@@ -49,22 +152,84 @@ get_property(C,Key,PropertyName) ->        Driver = connect(C),
                                            V.
 
 
+
+
+
+
+set_help() ->                p("---------------------------------------------------------------------"),
+                             p("-                    set(Connection,Key,Value)                      -"),
+                             p("-                                                                   -"),
+                             p("-      sets the value for a record identified by Key                -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
+
 set(Connection,Key,Value) -> Driver = connect(Connection),
                              apply(Driver, set, [Connection, Key, Value]),                                  
                              ok.
 
+
+
+
+
+
+
+
+set_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
+
 set([{connection,Connection},{key,Key}],Value) -> set(Connection,Key,Value).
 
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 
 create(Connection) -> Driver = connect(Connection),
                       Key = apply(Driver, create, [Connection]),
                       Key.
 
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 add_property( Connection, Key, PropertyName, Value) -> Driver = connect(Connection),
                                                        apply(Driver, add_property, [Connection, Key,PropertyName, Value]),
                                                        ok.
 
 
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 has_property(C,Record,PropertyName) -> Driver = connect(C),
                                        apply(Driver, has_property, [C, Record, PropertyName]),
                                        ok.
@@ -73,11 +238,42 @@ has_property(C,Record,PropertyName) -> Driver = connect(C),
 
 
 
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 set_property(C, Key,Col,Value) -> update_property(C,Key,Col,Value).
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 set(C, Key,Col,Value) -> update_property(C,Key,Col,Value).
 
 
 
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 update_property(C, Key,Col,Value) -> Driver = connect(C),
                                      apply(Driver, update_property, [C, Key,Col,Value]),
                                      ok.
@@ -86,10 +282,45 @@ update_property(C, Key,Col,Value) -> Driver = connect(C),
 
 
 
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 delete_property(C, Key, Property) -> delete_property(C, [{key,Key}, {property,Property}]).
 
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 delete_property(C, Key, Property, Value) -> delete_property(C, [{key,Key}, {property,Property}, {value,Value}]).
 
+
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 delete_property(C, Args) ->  Driver = connect(C),
                              Key = proplists:get_value(key,Args),
                              Property = proplists:get_value(property,Args),
@@ -102,6 +333,12 @@ delete_property(C, Args) ->  Driver = connect(C),
 
 
 
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 exists(Connection,Key) -> Driver = connect(Connection),
                           Exists = apply(Driver, exists, [Connection, Key]),
                           Exists.
@@ -109,41 +346,145 @@ exists(Connection,Key) -> Driver = connect(Connection),
 
 
 
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 delete(Connection,Key) -> Driver = connect(Connection),
                           apply(Driver, delete, [Connection, Key]),
                           ok.
 
 
 
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 ls(Connection) ->           Driver = connect(Connection),
                             Ls = apply(Driver, ls, [Connection]),
                             Ls.
 
 
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 count(Connection) ->  Driver = connect(Connection),
                       Count = apply(Driver, count, [Connection]),
                       Count.
 
 
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 delete_all( Connection , yes_im_sure ) -> Driver = connect( Connection ),
                                           apply( Driver , delete_all , [ Connection ,  yes_im_sure ] ),
                                           ok.
 
 
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 test() -> test_riak().
           % test_mnesia().
-%----------------------------------------------------------------------------------
 
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 test_riak() ->
                 RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
                 test(RiakConnection).
-%----------------------------------------------------------------------------------
 
+
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 
 local() -> RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
            RiakConnection.
 
-%----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+get_property_names_help() -> p("---------------------------------------------------------------------"),
+                             p("-                    connect(ConnectionArgs)                        -"),
+                             p("-                                                                   -"),
+                             p("-                    connects to the database                       -"),
+                             p("-                                                                   -"),
+                             p("---------------------------------------------------------------------").
 test(C) ->      println("Number of records in datastore:"),
                 Count = count(C),
                 print_number(Count),

@@ -1,17 +1,8 @@
--module(zhelp).
+-module(zql_help).
 -compile(export_all).
--import(zprint,[p/1]).
+-import(zql_print).
 
-help()         ->   p("-----------------------------------------------------------------"),
-                    p("- To get help on a module use MODULE_NAME:help()                -"),
-                    p("- eg: zprint:help().                                            -"),
-                    p("-                                                               -"),      
-                    p("-                        LIST OF MODULES                        -"),
-                    p("-----------------------------------------------------------------"),
-                    p("zql                Erlang based interface to system              "),
-                    p("zhelp              Help system                                   "),
-                    p("zooql              OO style parameterised module interface to zql"),
-                    p("-----------------------------------------------------------------").
+%----------------------------------------------------------------------------------
 
 help(zql)      ->   println("---------------------------------- Help ---------------------------------"),
 
