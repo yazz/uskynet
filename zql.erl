@@ -288,57 +288,17 @@ p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set_property(C, Key,Col,Value) -> update_property(C,Key,Col,Value).
+set_property(C, Key,Col,Value) -> set_property(C,Key,Col,Value).
 
 
 
 
 
-
-
-
-set_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                    connect(ConnectionArgs)                        -"),
-p("-                                                                   -"),
-p("-                    connects to the database                       -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-set(C, Key,Col,Value) -> update_property(C,Key,Col,Value).
-
-
-
-
-
-
-
-
-get_property_names_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
+p("-                delete_property(C, Key, Property)                  -"),
 p("-                                                                   -"),
-p("-                    connects to the database                       -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-update_property(C, Key,Col,Value) -> Driver = connect(C),
-                                     apply(Driver, update_property, [C, Key,Col,Value]),
-                                     ok.
-
-
-
-
-
-get_property_names_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
-p("-                                                                   -"),
-p("-                    connects to the database                       -"),
+p("-                Deletes a property froma  record                   -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
@@ -353,17 +313,17 @@ delete_property(C, Key, Property) -> delete_property(C, [{key,Key}, {property,Pr
 
 
 
-get_property_names_help() -> 
+delete_property_value_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
+p("-               delete_property_value(C,Key,PropertyName,Value)     -"),
 p("-                                                                   -"),
-p("-                    connects to the database                       -"),
+p("-              Deletes a specific property value from a record      -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-delete_property(C, Key, Property, Value) -> 
+delete_property_value(C, Key, Property, Value) -> 
                    delete_property(C, [{key,Key}, {property,Property}, {value,Value}]).
 
 
@@ -373,9 +333,6 @@ delete_property(C, Key, Property, Value) ->
 
 
 
-
-
-get_property_names_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
 p("-                    connect(ConnectionArgs)                        -"),
@@ -442,13 +399,13 @@ delete(Connection,Key) -> Driver = connect(Connection),
 
 
 
-get_property_names_help() -> 
+ls_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
+p("-                        ls(ConnectionArgs)                         -"),
 p("-                                                                   -"),
-p("-                    connects to the database                       -"),
-p("-                                                                   -"),
+p("-          Returns a list of objects in the database for            -"),
+p("-         in Erlang list format                                     -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -465,12 +422,12 @@ ls(Connection) ->           Driver = connect(Connection),
 
 
 
-get_property_names_help() -> 
+count_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
+p("-                    count(ConnectionArgs)                          -"),
 p("-                                                                   -"),
-p("-                    connects to the database                       -"),
+p("-               counts the number of records in the database        -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
@@ -508,12 +465,12 @@ delete_all( Connection , yes_im_sure ) -> Driver = connect( Connection ),
 
 
 
-get_property_names_help() -> 
+test_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    connect(ConnectionArgs)                        -"),
+p("-                           test()                                  -"),
 p("-                                                                   -"),
-p("-                    connects to the database                       -"),
+p("-                   tests the connection                            -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
@@ -529,7 +486,7 @@ test() -> test_riak().
 
 
 
-get_property_names_help() -> 
+test_riak_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
 p("-                    connect(ConnectionArgs)                        -"),

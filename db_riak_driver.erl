@@ -1,16 +1,19 @@
+
 -module(db_riak_driver).
 -compile(export_all).
 -import(zutils,[uuid/0]).
 
-%------------------------------------------------------------------------------------
+
 connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
                        {ok, C} = riak:client_connect(Hostname),
                        C.
 
+
+
 to_binary(Value) when is_binary(Value) -> Value;
 to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
-%------------------------------------------------------------------------------------
+
 get(Connection, Key) -> RiakClient = connect(Connection),
                         BinaryKey = to_binary(Key),
                         Bucket = proplists:get_value(bucket, Connection),
@@ -21,7 +24,8 @@ get(Connection, Key) -> RiakClient = connect(Connection),
 
                         Value = riak_object:get_value( Item ),
                         Value.
-%------------------------------------------------------------------------------------
+
+
 set(Connection, Key, Value) ->      RiakClient = connect( Connection ),
                                     BinaryKey = to_binary(Key),
                                     Bucket = proplists:get_value( bucket, Connection ),
