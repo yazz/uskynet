@@ -14,6 +14,12 @@ to_binary(Value) when is_binary(Value) -> Value;
 to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
+get_property(Connection, Key,PropertyName) -> 
+                                 Data = get( Connection, Key ),
+                                 Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
+                                 [{_PN, V} | _] = Value,
+                                 V.
+
 get(Connection, Key) -> RiakClient = connect(Connection),
                         BinaryKey = to_binary(Key),
                         Bucket = proplists:get_value(bucket, Connection),
@@ -109,7 +115,7 @@ delete_property(ConnectionArgs, Key,Property, Value) -> RiakClient = connect( Co
                                               RiakClient:put( UpdatedItem, 1).
                                        
 
-delete_property_list( Col, [] ) -> [];
+delete_property_list( _Col, [] ) -> [];
 delete_property_list( Col, [{Col,_AnyValue} | T ]) -> delete_property_list( Col, T);
 delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 

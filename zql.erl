@@ -12,6 +12,7 @@ p("-                   Erlang interface to the ZQL system                      -
 p("-                                                                           -"),
 p("-----------------------------------------------------------------------------"),
 p("-                                                                           -"),
+p("help(Command)                                     get help on a command      "),
 p("print(Connection, ID)                             print record with key ID   "),
 p("print_all(Connection)                             print all records          "),
 
@@ -116,14 +117,16 @@ match(_Value, equals, _ExpectedValue) -> false.
 
 
 
-connect_help() -> 
+get_db_driver_name_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
 p("-               get_db_driver_name(ConnectionArgs)                  -"),
 p("-                                                                   -"),
-p("-               gets the name of the database driver                -"),
+p("-              gets the name of the database driver                 -"),
 p("-                                                                   -"),
-p("-                                                                   -"),
+p("-  This is only used internally to get the database driver name     -"),
+p("  from the connection parameters                                    -"),
+p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
 get_db_driver_name(ConnectionArgs) -> Driver = proplists:get_value(driver,ConnectionArgs),
@@ -132,22 +135,24 @@ get_db_driver_name(ConnectionArgs) -> Driver = proplists:get_value(driver,Connec
 
 
 
+
+
+
+
+
+
 get_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    get(Connection, Key)                           -"),
+p("-                get( ConnectionArgs, Key )                         -"),
 p("-                                                                   -"),
 p("-           gets the value from the database for Key                -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get(Connection,Key) -> Driver = get_db_driver_name(Connection),
-                       Value = apply(Driver, get, [Connection, Key]),
-                       Value.
-
-
-
+get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, value ),
+                              Value.
 
 
 
@@ -155,16 +160,16 @@ get(Connection,Key) -> Driver = get_db_driver_name(Connection),
 get_property_names_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                 get_property_names(Connection,Key)                -"),
+p("-                 get_property_names(ConnectionArgs,Key)            -"),
 p("-                                                                   -"),
 p("-     gets all the properties for the record identified by Key      -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property_names(Connection,Key) ->      Driver = get_db_driver_name(Connection),
-                                           PropertyNames = apply(Driver, get_properties, [Connection, Key]),
-                                           PropertyNames.
+get_property_names( ConnectionArgs, Key) -> Driver = get_db_driver_name(ConnectionArgs),
+                                            PropertyNames = apply(Driver, get_properties, [ConnectionArgs, Key]),
+                                            PropertyNames.
 
 
 
@@ -174,19 +179,16 @@ get_property_names(Connection,Key) ->      Driver = get_db_driver_name(Connectio
 get_property_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                 get_property(Connection,Key,PropertyName)         -"),
+p("-          get_property( ConnectionArgs, Key, PropertyName)         -"),
 p("-                                                                   -"),
 p("- gets the value of the named property for record identified by Key -"),
 p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property(C,Key,PropertyName) -> Data = get(C,Key),
-                                    Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
-                                    [{_PN, V} | _] = Value,
-                                    V.
-
-
+get_property( ConnectionArgs, Key, PropertyName) -> Driver = get_db_driver_name( ConnectionArgs ),
+                                                    Value = apply(Driver, get_property, [ConnectionArgs, Key, PropertyName]),
+                                                    Value.
 
 
 
