@@ -12,125 +12,76 @@ p("-                   Erlang interface to the ZQL system                      -
 p("-                                                                           -"),
 p("-----------------------------------------------------------------------------"),
 p("                                                                             "),
-p("help( Command)                                    get help on a command      "),
-p("test()                                            run the self tests for zql "),
-p("local()                                           returns a local connection "),
+p("help (Command)                                   get help on a command       "),
+p("test ()                                          run the self tests for zql  "),
+p("local ()                                         returns a local connection  "),
 p("                                                                             "),
-p("set( ConnectionArgs, Key, Value)                  set a value                "),
-p("get( ConnectionArgs, Key)                         get the value of Key       "),
-p("exists( ConnectionArgs, Key)                      does this record/Key exist "),
+p("ls (ConnectionArgs)                                                          "),
+p("set (ConnectionArgs, Key, Value)                 set a value                 "),
+p("get (ConnectionArgs, Key)                        get the value of Key        "),
+p("exists (ConnectionArgs, Key)                     does this record/Key exist  "),
 p("                                                                             "),
-p("create_record( ConnectionArgs )                   create a record            "),
-p("delete_record( ConnectionArgs )                   delete a record            "),
-p("has_property( ConnectionArgs, Key, PropertyName)  check for a property       "),
-p("set_property( ConnectionArgs, Key, PropertyName, Value)                      
-p("delete_property( ConnectionArgs, Key, PropertyName)                          delete a property                              "),
-p("add_property( ConnectionArgs, Key, PropertyName, Value)                      add a value to a property list                 "),  
-p("delete_property_name_value( ConnectionArgs, Key, PropertyName, Value)        delete a specific property value from the list "),
+p("create_record (ConnectionArgs )                  create a record             "),
+p("delete_record (ConnectionArgs )                  delete a record             "),
 p("                                                                             "),
-p("print( ConnectionArgs, ID)                        print record with key ID   "),
-p("print_all( ConnectionArgs)                        print all records          "),
-p("connect( ConnectionArgs)                          connect to the database    "),
-p("get( ConnectionArgs, Key)                         get the value of Key       "),
-
-
-p("C = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}],"),
-p(""),
-p("zql:set(C, \"boy\", \"Is here\"),"),
-p("Value = zql:get(C, \"boy\")."),
-p(""),
-p(">> \"Is here\"\n\n"),
-p("C = zql:local().                     -- gets a connection locally"),
-p("zql:set(C, Key, Value ).             -- set a key / value"),
-p("zql:get(C, Key).                     -- get a value"),
-p("zql:exists(C, Key).                  -- true / false"),
-p("zql:delete(C, Key).                  -- ok"),
-p("zql:delete_all(C, yes_im_sure).      -- ok"),
-p("zql:ls(C).                           -- get all keys as a list"),
-p("R = zql:create(C).                   -- create a record and return it's unique ID"),
-p("zql:print(C,R).                      -- prints the record in a screen friendly format"),
-p("zql:set(C,R,type,person).            -- sets the type of the record to a person"),
-p("-                                                                   -"),
-p("-------------------------------------------------------------------------"),
+p("has_property (ConnectionArgs, Key, PropertyName) check for a property        "),
+p("set_property (C, Key, PropertyName, Value)       set a property              "),
+p("delete_property (C, Key, Property)               delete a property           "),
+p("add_property (C, Key, PropertyName, Value)       add to a property list      "),  
+p("delete_property_name_value (C, Key, P, Value)    delete a property value     "),
+p("                                                                             "),
+p("print (ConnectionArgs, ID)                       print record with key ID    "),
+p("print_all (ConnectionArgs)                       print all records           "),
+p("connect (ConnectionArgs)                         connect to the database     "),
+p("get (ConnectionArgs, Key)                        get the value of Key        "),
+p("                                                                             "),
+p(" Example:                                                                    "),
+p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
+p("zql:set(C, \"Name\", \"Scott\").                                             "),
+p("zql:get(C, \"Name\" ).                                                       "),
+p("-----------------------------------------------------------------------------"),
 ok.
+
+help(Command)       ->  HelpFunctionName = atom_to_list(Command) ++ "_help",
+                        apply(zql, list_to_atom(HelpFunctionName), []).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 test_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
 p("-                           test()                                  -"),
 p("-                                                                   -"),
-p("-                   tests the connection                            -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-test() -> test_riak().
-
-
-
-
-
-
-
-
-
-
-test_riak_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                         test_riak()                               -"),
-p("-                                                                   -"),
-p("-         run the test suite on the local riak database             -"),
-p("-                                                                   -"),
+p("-          This runs basic tests on the ZQL system by creating      -"),
+p("-         and performing some actions on records                    -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-test_riak() ->
-               RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-               test_with_connection(RiakConnection).
-
-
-
-
-
-
-
-
-
-
-local_riak_connection_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                  local_riak_connection(Connection)                -"),
-p("-                                                                   -"),
-p("-              gets a connection to a local version of riak         -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
+test() -> ConnectionArgs = local(),
+          test_with_connection( ConnectionArgs ).
 
 local_riak_connection() -> 
-
              RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
              RiakConnection.
-
-
-
-
-
-
-
-
-
-
-test_with_connection_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                       test(ConnectionArgs)                        -"),
-p("-                                                                   -"),
-p("-                 Tests the basic features of this module           -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
 
 test_with_connection(C) ->
 
@@ -160,12 +111,36 @@ test_with_connection(C) ->
 
 
 
+
+
+
+
+
+
+
+
+
+local_help() ->
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                           local( )                                -"),
+p("-                                                                   -"),
+p("-             returns a local database connection object            -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs1 = local().                                            -"),
+p("-                                                                   -"),
+p("- ConnectionArgs2 = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
+
+local() -> ConnectionArgs = local_riak_connection(),
+           ConnectionArgs.
                 
 
 
 
-help(Command)       ->  HelpFunctionName = atom_to_list(Command) ++ "_help",
-                        apply(zql, list_to_atom(HelpFunctionName), []).
 
 
 
@@ -173,6 +148,23 @@ help(Command)       ->  HelpFunctionName = atom_to_list(Command) ++ "_help",
 
 
 
+
+print_all_help()  -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                    print_all(Connection)                          -"),
+p("-                                                                   -"),
+p("-          Prints all the records to the console                    -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
+
+print_all(C) -> PrintRecord = fun(RecordId) -> print(C,RecordId) end,
+                lists:foreach(PrintRecord, zql:ls(C)).
 
 
 print_help() -> 
@@ -182,6 +174,10 @@ p("-                    print(Connection, RecordID)                    -"),
 p("-                                                                   -"),
 p("-             Prints the record with ID of RecordID                 -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -203,19 +199,6 @@ print(Connection, RecordId) ->
 
 
 
-print_all_help()  -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                    print_all(Connection)                          -"),
-p("-                                                                   -"),
-p("-          Prints all the records to the console                    -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-print_all(C) -> PrintRecord = fun(RecordId) -> print(C,RecordId) end,
-                lists:foreach(PrintRecord, zql:ls(C)).
-
 
 
 
@@ -225,6 +208,10 @@ p("-                    match(Connection)                              -"),
 p("-                                                                   -"),
 p("- This should match a set of records. Not implemented yet though    -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -249,6 +236,10 @@ p("-              gets the name of the database driver                 -"),
 p("-                                                                   -"),
 p("-  This is only used internally to get the database driver name     -"),
 p("  from the connection parameters                                    -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
@@ -271,6 +262,10 @@ p("-                get( ConnectionArgs, Key )                         -"),
 p("-                                                                   -"),
 p("-           gets the value from the database for Key                -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -287,6 +282,10 @@ p("-                 get_property_names(ConnectionArgs,Key)            -"),
 p("-                                                                   -"),
 p("-     gets all the properties for the record identified by Key      -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -306,6 +305,10 @@ p("-          get_property( ConnectionArgs, Key, PropertyName)         -"),
 p("-                                                                   -"),
 p("- gets the value of the named property for record identified by Key -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -323,6 +326,10 @@ p("-                    set(Connection,Key,Value)                      -"),
 p("-                                                                   -"),
 p("-      sets the value for a record identified by Key                -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -342,6 +349,10 @@ p("-                       This creates a new record                   -"),
 p("-                                                                   -"),
 p("         The unique ID of the record is returned as a HEX string    -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
 create_record(Connection) -> Driver = get_db_driver_name(Connection),
@@ -362,6 +373,10 @@ p("-        add_property(ConnArgs, Key, PropertyName, Value)           -"),
 p("-                                                                   -"),
 p("-   This adds a named property to a record identified by Key        -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -387,6 +402,10 @@ p("-                                                                   -"),
 p("-       Tests to see whether a record has a particular property     -"),
 p("-      and returns either true or false                             -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -407,6 +426,10 @@ p("-                  set_property(ConnArgs, Key, Col, Value)          -"),
 p("-                                                                   -"),
 p("-                      Sets a property of a record                  -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -429,6 +452,10 @@ p("-               delete_property_value(C,Key,PropertyName,Value)     -"),
 p("-                                                                   -"),
 p("-              Deletes a specific property value from a record      -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -451,6 +478,10 @@ p("-                    connect(ConnectionArgs)                        -"),
 p("-                                                                   -"),
 p("-                    connects to the database                       -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -469,6 +500,10 @@ p("-                    connect(ConnectionArgs)                        -"),
 p("-                                                                   -"),
 p("-                    connects to the database                       -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -493,6 +528,10 @@ p("-                      delete(Connection,Key)                       -"),
 p("-                                                                   -"),
 p("-                  deletes a record from the database               -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -515,6 +554,10 @@ p("-                                                                   -"),
 p("-          Returns a list of objects in the database for            -"),
 p("-         in Erlang list format                                     -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
 ls(Connection) -> Driver = get_db_driver_name(Connection),
@@ -537,6 +580,10 @@ p("-                    count(ConnectionArgs)                          -"),
 p("-                                                                   -"),
 p("-               counts the number of records in the database        -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -558,6 +605,10 @@ p("-           delete_all(ConnectionArgs, yes_im_sure)                 -"),
 p("-                                                                   -"),
 p("-                       deletes all records                         -"),
 p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
