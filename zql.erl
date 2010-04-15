@@ -11,10 +11,27 @@ p("-                                                                           -
 p("-                   Erlang interface to the ZQL system                      -"),
 p("-                                                                           -"),
 p("-----------------------------------------------------------------------------"),
-p("-                                                                           -"),
-p("help(Command)                                     get help on a command      "),
-p("print(Connection, ID)                             print record with key ID   "),
-p("print_all(Connection)                             print all records          "),
+p("                                                                             "),
+p("help( Command)                                    get help on a command      "),
+p("test()                                            run the self tests for zql "),
+p("local()                                           returns a local connection "),
+p("                                                                             "),
+p("set( ConnectionArgs, Key, Value)                  set a value                "),
+p("get( ConnectionArgs, Key)                         get the value of Key       "),
+p("exists( ConnectionArgs, Key)                      does this record/Key exist "),
+p("                                                                             "),
+p("create_record( ConnectionArgs )                   create a record            "),
+p("delete_record( ConnectionArgs )                   delete a record            "),
+p("has_property( ConnectionArgs, Key, PropertyName)  check for a property       "),
+p("set_property( ConnectionArgs, Key, PropertyName, Value)                      
+p("delete_property( ConnectionArgs, Key, PropertyName)                          delete a property                              "),
+p("add_property( ConnectionArgs, Key, PropertyName, Value)                      add a value to a property list                 "),  
+p("delete_property_name_value( ConnectionArgs, Key, PropertyName, Value)        delete a specific property value from the list "),
+p("                                                                             "),
+p("print( ConnectionArgs, ID)                        print record with key ID   "),
+p("print_all( ConnectionArgs)                        print all records          "),
+p("connect( ConnectionArgs)                          connect to the database    "),
+p("get( ConnectionArgs, Key)                         get the value of Key       "),
 
 
 p("C = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}],"),
@@ -37,7 +54,113 @@ p("-                                                                   -"),
 p("-------------------------------------------------------------------------"),
 ok.
 
+test_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                           test()                                  -"),
+p("-                                                                   -"),
+p("-                   tests the connection                            -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
 
+test() -> test_riak().
+
+
+
+
+
+
+
+
+
+
+test_riak_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                         test_riak()                               -"),
+p("-                                                                   -"),
+p("-         run the test suite on the local riak database             -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
+
+test_riak() ->
+               RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+               test_with_connection(RiakConnection).
+
+
+
+
+
+
+
+
+
+
+local_riak_connection_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                  local_riak_connection(Connection)                -"),
+p("-                                                                   -"),
+p("-              gets a connection to a local version of riak         -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
+
+local_riak_connection() -> 
+
+             RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+             RiakConnection.
+
+
+
+
+
+
+
+
+
+
+test_with_connection_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                       test(ConnectionArgs)                        -"),
+p("-                                                                   -"),
+p("-                 Tests the basic features of this module           -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("---------------------------------------------------------------------").
+
+test_with_connection(C) ->
+
+                println("Number of records in datastore:"),
+                Count = count(C),
+                print_number(Count),
+
+                delete_all(C,yes_im_sure),                
+
+                set(C, "boy", "Is here"),
+                println("\nSaved 'boy' as 'is here'"),
+                Value = get(C, "boy"),
+                println("got value of boy as : "),               
+                println(Value),
+                println("Check 'boy' exists :"),
+                Exists = exists(C, "boy"),
+                println(Exists),
+                delete(C,"boy"),
+                println("deleted 'boy'"),
+                println("Check 'boy' exists :"),
+                Exists2 = exists(C, "boy"),
+                println(Exists2),
+                println("-----------------------"),
+
+                LogEntry = create_record(C),
+                set_property(C,LogEntry,"type","log").
+
+
+
+                
 
 
 
@@ -203,9 +326,8 @@ p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set(Connection,Key,Value) -> Driver = get_db_driver_name(Connection),
-                             apply(Driver, set, [Connection, Key, Value]),                                  
-                             ok.
+set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ), 
+                                     ok.
 
 
 
@@ -269,8 +391,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 has_property(C,Record,PropertyName) -> Driver = get_db_driver_name(C),
-                                       apply(Driver, has_property, [C, Record, PropertyName]),
-                                       ok.
+                                       Ret = apply(Driver, has_property, [C, Record, PropertyName]),
+                                       Ret.
 
 
 
@@ -288,7 +410,13 @@ p("-                                                                   -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set_property(C, Key,Col,Value) -> set_property(C,Key,Col,Value).
+set_property( ConnArgs, Key, PropertyName, Value ) -> 
+                                             case has_property( ConnArgs, Key, PropertyName ) of
+                                                true -> delete_property( ConnArgs, Key, PropertyName);
+                                             
+                                                _ -> add_property( ConnArgs, Key, PropertyName, Value)
+                                             end,
+                                             ok.
 
 
 
@@ -445,110 +573,3 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_db_driver_name(Connection
 
 
 
-test_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                           test()                                  -"),
-p("-                                                                   -"),
-p("-                   tests the connection                            -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-test() -> test_riak().
-
-
-
-
-
-
-
-
-
-
-test_riak_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                         test_riak()                               -"),
-p("-                                                                   -"),
-p("-         run the test suite on the local riak database             -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-test_riak() ->
-               RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-               test_with_connection(RiakConnection).
-
-
-
-
-
-
-
-
-
-
-local_riak_connection_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                  local_riak_connection(Connection)                -"),
-p("-                                                                   -"),
-p("-              gets a connection to a local version of riak         -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-local_riak_connection() -> 
-
-             RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-             RiakConnection.
-
-
-
-
-
-
-
-
-
-
-test_with_connection_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                       test(ConnectionArgs)                        -"),
-p("-                                                                   -"),
-p("-                 Tests the basic features of this module           -"),
-p("-                                                                   -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-test_with_connection(C) ->
-
-                println("Number of records in datastore:"),
-                Count = count(C),
-                print_number(Count),
-
-                delete_all(C,yes_im_sure),                
-
-                set(C, "boy", "Is here"),
-                println("\nSaved 'boy' as 'is here'"),
-                Value = get(C, "boy"),
-                println("got value of boy as : "),               
-                println(Value),
-                println("Check 'boy' exists :"),
-                Exists = exists(C, "boy"),
-                println(Exists),
-                delete(C,"boy"),
-                println("deleted 'boy'"),
-                println("Check 'boy' exists :"),
-                Exists2 = exists(C, "boy"),
-                println(Exists2),
-                println("-----------------------"),
-
-                LogEntry = create_record(C),
-                set_property(C,LogEntry,"type","log").
-
-
-
-                
