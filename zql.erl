@@ -1,6 +1,6 @@
 -module(zql).
 -compile(export_all).
--import(zprint,[println/1,p/1,print_number/1]).
+-import(zprint,[println/1,p/1,q/1,print_number/1]).
 -import(zutils,[uuid/0]).
 
 help() -> 
@@ -37,8 +37,8 @@ p("get (ConnectionArgs, Key)                        get the value of Key        
 p("                                                                             "),
 p(" Example:                                                                    "),
 p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
-p("zql:set(C, \"Name\", \"Scott\").                                             "),
-p("zql:get(C, \"Name\" ).                                                       "),
+q('zql:set(C, "Name", "Scott").                                                 '),
+q('zql:get(C, "Name" ).                                                         '),
 p("-----------------------------------------------------------------------------"),
 ok.
 
@@ -129,7 +129,7 @@ p("-             returns a local database connection object            -"),
 p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
-p("- ConnectionArgs1 = local().                                            -"),
+p("- ConnectionArgs1 = local().                                        -"),
 p("-                                                                   -"),
 p("- ConnectionArgs2 = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
 p("-                                                                   -"),
@@ -211,7 +211,7 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- match( ConnectionArgs ).                                          -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -236,10 +236,11 @@ p("-              gets the name of the database driver                 -"),
 p("-                                                                   -"),
 p("-  This is only used internally to get the database driver name     -"),
 p("  from the connection parameters                                    -"),
+p("                                                                    -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- get_db_driver_name( ConnectionArgs ).                             -"),
 p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
@@ -265,7 +266,11 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+q('- set( ConnectionArgs, "Name", "Bob").                              -'),
+q('- get( ConnectionArgs, "Name").                                     -'),
+q('- >> "Bob"                                                          -'),
+q('- get_property( ConnectionArgs, "Name", value).                     -'),
+q('- >> "Bob"                                                          -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 

@@ -18,6 +18,8 @@ p(Line) -> println(Line).
 
 print(Line)  ->   io:fwrite(Line).
 
+q(Atom) -> String = atom_to_list(Atom),
+            p(String).
 
 print_number(N) ->   io:format("~w~n", [N]).
 
