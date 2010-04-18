@@ -15,6 +15,7 @@ p("                                                                             
 p("help (Command)                                   get help on a command       "),
 p("test ()                                          run the self tests for zql  "),
 p("local ()                                         returns a local connection  "),
+p("test_connection( ConnectionArgs )                tests a connection          "),
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
 p("set (ConnectionArgs, Key, Value)                 set a value                 "),
@@ -138,9 +139,35 @@ p("---------------------------------------------------------------------").
 local() -> ConnectionArgs = local_riak_connection(),
            ConnectionArgs.
                 
+test_conection_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                    test_connection( ConnectionArgs )              -"),
+p("-                                                                   -"),
+p("-                    This tests the database connection             -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- test_connection( ConnectionArgs ).                                -"),
+p("- >> {ok, connection_fine}                                          -"),
+p("-                                                                   -"),
+p("- test_connection( bad_data ).                                      -"),
+p("- >> {error, bad_connection}                                        _"),
+p("---------------------------------------------------------------------").
+
+test_connection( ConnectionArgs ) -> try ( test_conn( ConnectionArgs ) ) of
+                                     _ -> {ok, connection_fine}
+
+                                     catch
+                                        Exception:Reason -> {error, bad_connection}
+                                     end.
 
 
-
+test_conn(ConnectionArgs) -> Driver = get_db_driver_name( ConnectionArgs ),
+                             apply( Driver , connect, [ ConnectionArgs ]),
+                             ok.
 
 
 
@@ -181,17 +208,23 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-print(Connection, RecordId) -> 
+print( ConnectionArgs, RecordId) -> 
 
-    Record = get(Connection, RecordId),
-    println("-------------------------"),
+    Record = get( ConnectionArgs, RecordId),
+    Record.
+
+print2( ConnectionArgs, RecordId) -> 
+
+    Record = get( ConnectionArgs, RecordId),
     io:format("ID:~s~n", [RecordId]),
-    case is_list(Record) of
-        true -> lists:foreach(
-             fun({PropertyName,Value}) -> io:format("~s:~s~n", [PropertyName,Value]) end,Record);
 
-        false -> io:format("~s~n", [Record])
-    end,
+    lists:foreach(
+             fun( { PropertyName, Value } ) -> 
+                  io:format( "~s:~s~n", [ PropertyName, Value ]) 
+             end,
+             Record),
+
+
     println("").
 
 
@@ -295,7 +328,7 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 get_property_names( ConnectionArgs, Key) -> Driver = get_db_driver_name(ConnectionArgs),
-                                            PropertyNames = apply(Driver, get_properties, [ConnectionArgs, Key]),
+                                            PropertyNames = apply(Driver, get_property_names, [ConnectionArgs, Key]),
                                             PropertyNames.
 
 
@@ -334,7 +367,7 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+q('- set( ConnectionArgs, "system", "windows" ).                       -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -361,8 +394,12 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
 create_record(Connection) -> Driver = get_db_driver_name(Connection),
-                             Key = apply(Driver, create, [Connection]),
+                             Key = apply(Driver, create_record, [Connection]),
                              Key.
+
+create_record(Connection,Id) -> Driver = get_db_driver_name(Connection),
+                                Key = apply(Driver, create_record, [Connection, Id]),
+                                Key.
 
 
 
@@ -381,14 +418,14 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+q('- add_property( ConnectionArgs, "Peter", type, "Person" ).          -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 add_property( Connection, Key, PropertyName, Value) -> 
 
                           Driver = get_db_driver_name(Connection),
-                          apply(Driver, add_property, [Connection, Key,PropertyName, Value]),
+                          apply(Driver, add_property, [Connection, Key, PropertyName, Value]),
                           ok.
 
 
@@ -434,11 +471,17 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+q('- set_property( ConnectionArgs, "Jonny",type,"Person" ).            -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 set_property( ConnArgs, Key, PropertyName, Value ) -> 
+                                             DoesRecordExist = exists( ConnArgs, Key),
+                                             case DoesRecordExist of
+                                                false -> create_record( ConnArgs, Key );
+                                                true -> do_nothing
+                                             end,
+                                             
                                              case has_property( ConnArgs, Key, PropertyName ) of
                                                 true -> delete_property( ConnArgs, Key, PropertyName);
                                              
@@ -508,7 +551,11 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+q('- exists( ConnectionArgs, "ABC" ).                                  -'),
+q('- >> false                                                          -'),
+q('- set( ConnectionArgs, "ABC", "Hello world").                       -'),
+q('- exists( ConnectionArgs, "ABC" ).                                  -'),
+q('- >> true                                                           -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
@@ -562,7 +609,7 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- ls( ConnectionArgs ).                                             -"),
 p("---------------------------------------------------------------------").
 
 ls(Connection) -> Driver = get_db_driver_name(Connection),
@@ -613,7 +660,7 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- delete_all( ConnectionArgs, yes_im_sure ).                        -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 

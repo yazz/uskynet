@@ -2,7 +2,6 @@
 -compile(export_all).
 -import(zutils,[uuid/0]).
 
--record(data, {key, value}).
 
 connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
                        {ok, C} = riak:client_connect(Hostname),
@@ -20,9 +19,19 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 
+get_property_names( ConnectionArgs, Key ) -> 
 
-get_property(Connection, Key,PropertyName) -> 
-                                 Data = get( Connection, Key ),
+                                 Data = get( ConnectionArgs, Key ),
+                                 NamesWithDuplicates = [ Prop || {Prop,Value} <- Data ],
+                                 NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
+                                 UniqueList = sets:to_list(NoDuplicatesSet),
+                                 UniqueList.
+
+
+
+get_property( ConnectionArgs, Key, PropertyName) -> 
+
+                                 Data = get( ConnectionArgs, Key ),
                                  Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
                                  [{_PN, V} | _] = Value,
                                  V.
@@ -31,28 +40,26 @@ get_property(Connection, Key,PropertyName) ->
 
 
 
-has_property(Connection, Key, PropertyName) -> 
+has_property( ConnectionArgs, Key, PropertyName) -> 
 
-                                 Data = get( Connection, Key ),
-                                 Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
-                                 Value.
-                                 %[{_PN, V} | _] = Value,
-                                 %V.
+                                               PropertyNames = get_property_names( ConnectionArgs, Key),
+                                               ContainsKey = lists:member( PropertyName, PropertyNames),
+                                               ContainsKey.
 
 
 
 
 
-get(Connection, Key) -> RiakClient = connect(Connection),
-                        BinaryKey = to_binary(Key),
-                        Bucket = proplists:get_value(bucket, Connection),
-                        { ok, Item } = RiakClient:get(
-                                 Bucket,
-                                 BinaryKey,
-                                 1),
+get( ConnectionArgs, Key ) -> RiakClient = connect( ConnectionArgs ),
+                              BinaryKey = to_binary( Key ),
+                              Bucket = proplists:get_value( bucket, ConnectionArgs ),
+                              { ok, Item } = RiakClient:get(
+                                  Bucket,
+                                  BinaryKey,
+                                  1),
 
-                        Value = riak_object:get_value( Item ),
-                        Value.
+                              Value = riak_object:get_value( Item ),
+                              Value.
 
 
 
@@ -61,12 +68,12 @@ get(Connection, Key) -> RiakClient = connect(Connection),
 
 
 
-set(Connection, Key, Value) -> RiakClient = connect( Connection ),
-                               BinaryKey = to_binary(Key),
-                               Bucket = proplists:get_value( bucket, Connection ),
-                               Item = riak_object:new( Bucket, BinaryKey, Value ),
-                               RiakClient:put( Item , 1),
-                               ok.
+set( ConnectionArgs, Key, Value) -> RiakClient = connect( ConnectionArgs ),
+                                    BinaryKey = to_binary(Key),
+                                    Bucket = proplists:get_value( bucket, ConnectionArgs ),
+                                    Item = riak_object:new( Bucket, BinaryKey, Value ),
+                                    RiakClient:put( Item , 1),
+                                    ok.
 
 
 
@@ -76,10 +83,15 @@ set(Connection, Key, Value) -> RiakClient = connect( Connection ),
 
 
 
-create(Connection)            -> UUID = uuid(),
-                                 Key = list_to_binary(UUID),
-                                 RiakClient = connect( Connection ),
-                                 Bucket = proplists:get_value( bucket, Connection ),
+create_record(ConnectionArgs) -> UUID = uuid(),
+                                 create_record(ConnectionArgs, UUID).
+
+
+create_record(ConnectionArgs, Id) -> 
+
+                                 Key = list_to_binary(Id),
+                                 RiakClient = connect( ConnectionArgs ),
+                                 Bucket = proplists:get_value( bucket, ConnectionArgs ),
                                  Item = riak_object:new( Bucket, Key, [] ),
                                  RiakClient:put( Item , 1),
                                  Key.
@@ -91,13 +103,13 @@ create(Connection)            -> UUID = uuid(),
 
 
 
-
 add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
                                                 Bucket = proplists:get_value(bucket, C),
+                                                BinaryKey = to_binary(Key),
 
                                                 { ok, Item } = RiakClient:get(
                                                     Bucket,
-                                                    Key,
+                                                    BinaryKey,
                                                     1),
                                                 CurrentValues = riak_object:get_value( Item ),
                                                 UpdatedValue = [{PropertyName,Value} | CurrentValues],
@@ -106,6 +118,7 @@ add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
                                                     Item,
                                                     UpdatedValue),
                                                 RiakClient:put( UpdatedItem, 1).
+
 
 
 
@@ -245,10 +258,11 @@ count(Connection) -> Keys = ls(Connection),
 
 
 
-delete_all( Connection , yes_im_sure ) ->  Keys = ls(Connection),
-                                           DeleteFunction = fun(Key) -> delete( Connection , Key ) end,
-                                           lists:map( DeleteFunction , Keys),
-                                           ok.
+delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
+                                               DeleteFunction = fun(Key) -> delete( ConnectionArgs , Key ) end,
+                                               lists:map( DeleteFunction , Keys),
+                                               ok.
+
 
 
 
