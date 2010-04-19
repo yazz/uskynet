@@ -16,6 +16,7 @@ p("help (Command)                                   get help on a command       
 p("test ()                                          run the self tests for zql  "),
 p("local ()                                         returns a local connection  "),
 p("test_connection( ConnectionArgs )                tests a connection          "),
+p("session( ConnectionArgs )                        returns an OO session to ZQL"),
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
 p("set (ConnectionArgs, Key, Value)                 set a value                 "),
@@ -171,12 +172,13 @@ test_connection( ConnectionArgs ) -> try ( test_conn( ConnectionArgs ) ) of
                                      end.
 
 
-test_conn(ConnectionArgs) -> Driver = get_db_driver_name( ConnectionArgs ),
-                             apply( Driver , connect, [ ConnectionArgs ]),
-                             ok.
+test_conn( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
+                               apply( Driver , connect, [ ConnectionArgs ]),
+                               ok.
 
 
-
+session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
+                             Session.
 
 
 
@@ -229,7 +231,7 @@ print( ConnectionArgs, Key) ->
     ok.
 
 print_fn(ConnectionArgs,Key) ->
-    Value = get( ConnectionArgs, Key),
+
     PropertyNames = get_property_names( ConnectionArgs, Key),
     lists:foreach(
              fun( PropertyName ) ->
