@@ -19,6 +19,7 @@ p("test_connection( ConnectionArgs )                tests a connection          
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
 p("set (ConnectionArgs, Key, Value)                 set a value                 "),
+p("put (ConnectionArgs, Key, Value)                 set a value                 "),
 p("get (ConnectionArgs, Key)                        get the value of Key        "),
 p("exists (ConnectionArgs, Key)                     does this record/Key exist  "),
 p("                                                                             "),
@@ -81,12 +82,12 @@ test() -> ConnectionArgs = local(),
           test_with_connection( ConnectionArgs ).
 
 local_riak_connection() -> 
-             RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-             RiakConnection.
+         RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+         RiakConnection.
 
 local_mnesia_connection() -> 
-             MnesiaConnection = [{driver,db_mnesia_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-             MnesiaConnection.
+         MnesiaConnection = [{driver,db_mnesia_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+         MnesiaConnection.
 
 test_with_connection(C) ->
 
@@ -195,42 +196,50 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-print_all(C) -> PrintRecord = fun(RecordId) -> print(C,RecordId) end,
+print_all(C) -> PrintRecord = fun(Key) -> print(C,Key) end,
                 lists:foreach(PrintRecord, zql:ls(C)).
 
 
 print_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-                    print(Connection, RecordID)                    -"),
+p("-                    print(Connection, Key)                         -"),
 p("-                                                                   -"),
 p("-             Prints the record with ID of RecordID                 -"),
 p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- print( ConnectionArgs, Key ).                                     -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-print( ConnectionArgs, RecordId) -> 
+print( ConnectionArgs, Key) -> 
+    p("--------------------------------------------------------------"),
+    io:format("ID:~s~n", [Key]),
+    p("--------------------------------------------------------------"),
 
-    Record = get( ConnectionArgs, RecordId),
-    Record.
+    try ( print_fn(ConnectionArgs,Key )) of 
+      ok -> ok
+    catch
+        _:_ -> error
+    end,
+    p("--------------------------------------------------------------"),
+    p(""),
+    ok.
 
-print2( ConnectionArgs, RecordId) -> 
-
-    Record = get( ConnectionArgs, RecordId),
-    io:format("ID:~s~n", [RecordId]),
-
+print_fn(ConnectionArgs,Key) ->
+    Value = get( ConnectionArgs, Key),
+    PropertyNames = get_property_names( ConnectionArgs, Key),
     lists:foreach(
-             fun( { PropertyName, Value } ) -> 
-                  io:format( "~s:~s~n", [ PropertyName, Value ]) 
+             fun( PropertyName ) ->
+                  PropValue = get_property( ConnectionArgs, Key, PropertyName), 
+                  io:format( "~s:~s~n", [ PropertyName, PropValue ]) 
              end,
-             Record),
+             PropertyNames),
+             ok.
+             
 
-
-    println("").
 
 
 
@@ -376,8 +385,10 @@ q('- set( ConnectionArgs, "system", "windows" ).                       -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ), 
-                                     ok.
+set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ).
+
+put( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ). 
+
 
 
 
