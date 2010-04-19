@@ -84,6 +84,10 @@ local_riak_connection() ->
              RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
              RiakConnection.
 
+local_mnesia_connection() -> 
+             MnesiaConnection = [{driver,db_mnesia_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+             MnesiaConnection.
+
 test_with_connection(C) ->
 
                 println("Number of records in datastore:"),
@@ -136,7 +140,8 @@ p("- ConnectionArgs2 = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bu
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-local() -> ConnectionArgs = local_riak_connection(),
+local() -> %ConnectionArgs = local_riak_connection(),
+           ConnectionArgs = local_mnesia_connection(),
            ConnectionArgs.
                 
 test_conection_help() -> 
@@ -161,7 +166,7 @@ test_connection( ConnectionArgs ) -> try ( test_conn( ConnectionArgs ) ) of
                                      _ -> {ok, connection_fine}
 
                                      catch
-                                        Exception:Reason -> {error, bad_connection}
+                                        _Exception:_Reason -> {error, bad_connection}
                                      end.
 
 
