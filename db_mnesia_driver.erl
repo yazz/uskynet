@@ -322,4 +322,4 @@ Fun = fun() ->
                                     mnesia:delete_object(X)
                             end, List)
       end,
-mnesia:transaction(Fun).
+      mnesia:transaction(Fun).
