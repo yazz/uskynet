@@ -8,4 +8,12 @@ added from vmware
 
 
 
-in win
+in windows
+
+
+
+
+
+ok
+
+
