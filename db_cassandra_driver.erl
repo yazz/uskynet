@@ -1,4 +1,4 @@
--module(t).
+-module(db_cassandra_driver).
 -compile(export_all).
 
 -include_lib("cassandra_types.hrl").
