@@ -4,6 +4,13 @@
 
 -include_lib("cassandra_types.hrl").
 
+test() -> ConnectionArgs = local_cassandra_connection(),
+          zql:test_with_connection( ConnectionArgs ).
+
+local_cassandra_connection() -> 
+         CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
+         CassandraConnection.
+
 connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
                        {ok, C} = thrift_client:start_link(Hostname,9160, cassandra_thrift),
                        C.
@@ -232,16 +239,22 @@ delete(Connection, Key) ->      RiakClient = connect( Connection ),
                                 RiakClient:delete( Bucket, BinaryKey, 1 ),
  		       	    	ok.
 
+delete(Key) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
+               S = #sliceRange{start="",finish="",reversed=false,count=100},
 
+               List = thrift_client:call( C,
+                   'remove',
+                   [ "Keyspace1",
+                     Key,
+                     #columnPath{column_family="KeyValue"},
+                     1,
+                     1
+                     ] ),
+               List.
 
-
-
-ls(Connection) -> RiakClient = connect( Connection ),
-                  Bucket = proplists:get_value(bucket, Connection),
-                  {ok,Keys} = RiakClient:list_keys( Bucket ),
-                  Keys.
-
+from_keyslice2( [] ) -> [];
+from_keyslice2( [{keySlice, Key, Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
 
 
 
@@ -350,7 +363,7 @@ v() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
         thrift_client:call(C, 'describe_version',[]).
 
 
-ls() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+ls(Co) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
             S = #sliceRange{start="",finish="",reversed=false,count=100},
 
@@ -368,3 +381,5 @@ ls() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
 from_keyslice( [] ) -> [];
 from_keyslice( [{keySlice, Key, Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
+
+
