@@ -10,3 +10,5 @@ get(PropertyName) -> zql:get_property( Conn, Key , PropertyName).
 set(PropertyName, Value) -> zql:set_property(Conn, Key, PropertyName, Value).
 
 add(PropertyName, Value) -> zql:set_property(Conn, Key, PropertyName, Value).
+
+id( ) -> Key.

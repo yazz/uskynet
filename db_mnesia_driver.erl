@@ -7,6 +7,8 @@
 
 -record(data, {key, value}).
 
+name( ) -> "MNesia".
+
 connect(Connection) -> %Hostname = proplists:get_value(hostname, Connection)
                        %{ok, C} = riak:client_connect(Hostname),
                        ok.

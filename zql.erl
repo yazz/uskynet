@@ -17,6 +17,7 @@ p("test ()                                          run the self tests for zql  
 p("local ()                                         returns a local connection  "),
 p("test_connection( ConnectionArgs )                tests a connection          "),
 p("session( ConnectionArgs )                        returns an OO session to ZQL"),
+p("whichdb( COnnectionArgs )                        returns the DB name         "),
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
 p("set (ConnectionArgs, Key, Value)                 set a value                 "),
@@ -181,6 +182,9 @@ session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
                              Session.
 
 
+whichdb( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
+                             Name = apply( Driver , name, [ ]),
+                             Name.
 
 
 
