@@ -6,7 +6,7 @@
 
 test() -> ConnectionArgs = local_cassandra_connection(),
           zql:test_with_connection( ConnectionArgs ).
-
+lc() -> local_cassandra_connection().
 local_cassandra_connection() -> 
          CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
          CassandraConnection.
@@ -69,19 +69,6 @@ get( ConnectionArgs, Key ) -> RiakClient = connect( ConnectionArgs ),
                               Value = riak_object:get_value( Item ),
                               Value.
 
-
-
-
-
-
-
-
-set( ConnectionArgs, Key, Value) -> RiakClient = connect( ConnectionArgs ),
-                                    BinaryKey = to_binary(Key),
-                                    Bucket = proplists:get_value( bucket, ConnectionArgs ),
-                                    Item = riak_object:new( Bucket, BinaryKey, Value ),
-                                    RiakClient:put( Item , 1),
-                                    ok.
 
 
 
@@ -224,6 +211,7 @@ exists(Connection, Key) ->  RiakClient = connect( Connection ),
                             of
                                 _ -> true
                             catch
+
                                 error:_Reason -> false
 		            end.
 
@@ -232,14 +220,8 @@ exists(Connection, Key) ->  RiakClient = connect( Connection ),
 
 
 
-delete(Connection, Key) ->      RiakClient = connect( Connection ),
-                                BinaryKey = to_binary(Key),
-                                Bucket = proplists:get_value(bucket, Connection),
-
-                                RiakClient:delete( Bucket, BinaryKey, 1 ),
- 		       	    	ok.
-
-delete(Key) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+delete(Key) -> delete(lc(),Key).
+delete(Connection,Key) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
                S = #sliceRange{start="",finish="",reversed=false,count=100},
 
@@ -279,8 +261,8 @@ delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
 
 
 
-
-set(K,V) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+set(K,V) -> set(lc(),K,V).
+set(Conn,K,V) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
             thrift_client:call( C,
                    'insert',
@@ -308,7 +290,8 @@ get(K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift)
 names() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 thrift_client:call(C, getTableNames, []).
 
-setv(K,P,V) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+set_property( Key, PropertyName, Value ) -> set_property( lc(), Key, PropertyName, Value ).
+set_property( Conn, K, P, V ) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
             thrift_client:call( C,
                    'insert',
@@ -363,6 +346,7 @@ v() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
         thrift_client:call(C, 'describe_version',[]).
 
 
+ls() -> ls(lc()).
 ls(Co) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
             S = #sliceRange{start="",finish="",reversed=false,count=100},
