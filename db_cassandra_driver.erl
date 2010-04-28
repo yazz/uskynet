@@ -1,11 +1,48 @@
 -module(db_cassandra_driver).
 -compile(export_all).
+-import(zprint,[println/1,p/1,q/1,print_number/1]).
 -import(zutils,[uuid/0]).
-
 -include_lib("cassandra_types.hrl").
 
 test() -> ConnectionArgs = local_cassandra_connection(),
-          zql:test_with_connection( ConnectionArgs ).
+          test_with_connection( ConnectionArgs ).
+test_with_connection(C) ->
+
+                println("Number of records in datastore:"),
+                Count = count(C),
+                print_number(Count),
+
+                zql:delete_all(C,yes_im_sure),                
+
+                zql:set(C, "boy", "Is here"),
+                println("\nSaved 'boy' as 'is here'").
+
+test_with_connection2(C) ->
+                println("Number of records in datastore:"),
+                Count = count(C),
+                print_number(Count),
+
+                zql:delete_all(C,yes_im_sure),                
+
+                zql:set(C, "boy", "Is here"),
+                println("\nSaved 'boy' as 'is here'"),
+                Value = zql:get(C, "boy"),
+                println("got value of boy as : "),               
+                println(Value),
+                println("Check 'boy' exists :"),
+                Exists = zql:exists(C, "boy"),
+                println(Exists),
+                zql:delete(C,"boy"),
+                println("deleted 'boy'"),
+                println("Check 'boy' exists :"),
+                Exists2 = zql:exists(C, "boy"),
+                println(Exists2),
+                println("-----------------------"),
+
+                LogEntry = zql:create_record(C),
+                zql:set_property(C,LogEntry,"type","log").
+
+
 lc() -> local_cassandra_connection().
 local_cassandra_connection() -> 
          CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
@@ -27,7 +64,7 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 
-get_property_names( ConnectionArgs, Key ) -> 
+get_property_name2s( ConnectionArgs, Key ) -> 
 
                                  Data = get( ConnectionArgs, Key ),
                                  NamesWithDuplicates = [ Prop || {Prop,Value} <- Data ],
@@ -83,12 +120,9 @@ create_record(ConnectionArgs) -> UUID = uuid(),
 
 
 create_record(ConnectionArgs, Id) -> 
-
                                  Key = list_to_binary(Id),
-                                 RiakClient = connect( ConnectionArgs ),
-                                 Bucket = proplists:get_value( bucket, ConnectionArgs ),
-                                 Item = riak_object:new( Bucket, Key, [] ),
-                                 RiakClient:put( Item , 1),
+                                 CassandraClient = connect( ConnectionArgs ),
+                                 put(Key,""),
                                  Key.
 
 
@@ -199,15 +233,12 @@ delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 
 
 
-exists(Connection, Key) ->  RiakClient = connect( Connection ),
+exists(Connection, Key) ->  CassandraClient = connect( Connection ),
                             BinaryKey = to_binary(Key),
                             Bucket = proplists:get_value(bucket, Connection),
 
                             try
-                                { ok, _Item } = RiakClient:get(
-                                    Bucket,
-                                    BinaryKey,
-                                    1)
+                                get(Connection, Key)
                             of
                                 _ -> true
                             catch
@@ -291,15 +322,25 @@ names() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift
 thrift_client:call(C, getTableNames, []).
 
 set_property( Key, PropertyName, Value ) -> set_property( lc(), Key, PropertyName, Value ).
-set_property( Conn, K, P, V ) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+
+set_property( Conn, K, P, V ) -> 
+
+            {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+            
+            MutationMap = {
+                              <<"i2">>, 
+                              {
+                                  <<"KeyValue">>, 
+                                  [
+                                      #mutation{ column_or_supercolumn = #column{ name = <<"peoperty">> , value = <<"value">> , timestamp = 1 } }
+                                  ]
+                              }
+                          },
 
             thrift_client:call( C,
-                   'insert',
+                   'batch_mutate',
                    [ "Keyspace1",
-                     K,
-                     #columnPath{column_family="KeyValue", column=P},
-                     V,
-                     1,
+                     MutationMap,
                      1
                      ] ).
 
@@ -316,7 +357,7 @@ getv(K,P) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thri
             X.
 
 
-get_props(K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+get_property_names(Conn,K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
             S = #sliceRange{start="",finish="",reversed=false,count=100},
             CassandraReturn = thrift_client:call( C,
@@ -330,13 +371,18 @@ get_props(K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_t
             {ok, ReturnList} = CassandraReturn,
             ReturnList,
             List = from_returnlist(ReturnList),
-            List.
+
+            NoDuplicatesSet = sets:from_list(List),
+                                 UniqueList = sets:to_list(NoDuplicatesSet),
+                                 UniqueList.
+
+
 
 from_returnlist( [] ) -> [];
 
 from_returnlist( [{columnOrSuperColumn, {column,PropName, Value,Count},undefined} | Tail] ) 
--> 
-[PropName | from_returnlist(Tail) ].
+                 -> 
+                    [PropName | from_returnlist(Tail) ].
 
 
 
