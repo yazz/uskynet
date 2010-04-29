@@ -321,28 +321,43 @@ get(K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift)
 names() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 thrift_client:call(C, getTableNames, []).
 
+
+
+
+
+
 set_property( Key, PropertyName, Value ) -> set_property( lc(), Key, PropertyName, Value ).
 
 set_property( Conn, K, P, V ) -> 
 
-            {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
-            
-            MutationMap = {
-                              <<"i2">>, 
-                              {
-                                  <<"KeyValue">>, 
-                                  [
-                                      #mutation{ column_or_supercolumn = #column{ name = <<"peoperty">> , value = <<"value">> , timestamp = 1 } }
-                                  ]
-                              }
-                          },
+  {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+         
+  MutationMap = 
+  {
+    <<"i2">>, 
+    {
+      <<"KeyValue">>, 
+      [
+        #mutation{ 
+          column_or_supercolumn = #column{ name = <<"value">> , value = <<"value">> , timestamp = 1 } 
+        }
+      ]
+    }
+  },
 
-            thrift_client:call( C,
-                   'batch_mutate',
-                   [ "Keyspace1",
-                     MutationMap,
-                     1
-                     ] ).
+  thrift_client:call( C,
+    'batch_mutate',
+    [ "Keyspace1",
+       MutationMap,
+       1
+    ] ).
+
+
+
+
+
+
+
 
 getv(K,P) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
