@@ -11,4 +11,5 @@ hex_uuid() -> UUID_with_newline = os:cmd("uuidgen"),
 uuid() -> hex_uuid().
 
 remove_newline(Line) -> Length = length(Line),
-                        NewLine = lists:sublist( Line, Length - 1).
+                        NewLine = lists:sublist( Line, Length - 1),
+                        NewLine.

@@ -22,7 +22,7 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 get_property_names( ConnectionArgs, Key ) -> 
 
                                  Data = get( ConnectionArgs, Key ),
-                                 NamesWithDuplicates = [ Prop || {Prop,Value} <- Data ],
+                                 NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
                                  NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
                                  UniqueList = sets:to_list(NoDuplicatesSet),
                                  UniqueList.

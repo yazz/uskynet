@@ -30,14 +30,14 @@ p("count( )                                         count the number of records 
 p("                                                                             "),
 p(" Example:                                                                    "),
 p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
-p("DB = zql:session(C).                                                         "),
+p("DB = session(C).                                                             "),
 q('DB:set("Name", "Scott").                                                     '),
 q('DB:get("Name" ).                                                             '),
 p("-----------------------------------------------------------------------------"),
 ok.
 
-get(Key) -> zql:get(Conn,Key).
-set(Key,Value) -> zql:set(Conn, Key,Value).
+get(Key) -> zql:get( Conn, Key).
+set(Key,Value) -> zql:set(Conn, Key, Value).
 ls( ) -> zql:ls(Conn).
 print_all( ) -> zql:print_all( Conn ).
 count( ) -> zql:count(Conn).
@@ -48,3 +48,5 @@ get_record(Key) -> recordoo:new(Conn,Key).
 create_record( ) -> Key = zql:create_record( Conn ),
                     Record = recordoo:new( Conn, Key ),
                     Record.
+
+exists(Key) -> zql:exists(Conn,Key).

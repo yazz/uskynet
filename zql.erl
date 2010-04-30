@@ -297,8 +297,8 @@ p("- get_db_driver_name( ConnectionArgs ).                             -"),
 p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
-get_db_driver_name(ConnectionArgs) -> Driver = proplists:get_value(driver,ConnectionArgs),
-                                      Driver.
+get_db_driver_name( ConnectionArgs ) -> Driver = proplists:get_value( driver, ConnectionArgs ),
+                                        Driver.
 
 
 
@@ -503,12 +503,8 @@ set_property( ConnArgs, Key, PropertyName, Value ) ->
                                                 false -> create_record( ConnArgs, Key );
                                                 true -> do_nothing
                                              end,
-                                             
-                                             case has_property( ConnArgs, Key, PropertyName ) of
-                                                true -> delete_property( ConnArgs, Key, PropertyName);
-                                             
-                                                _ -> add_property( ConnArgs, Key, PropertyName, Value)
-                                             end,
+
+                                             add_property( ConnArgs, Key, PropertyName, Value),
                                              ok.
 
 
@@ -581,9 +577,9 @@ q('- >> true                                                           -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-exists(Connection,Key) -> Driver = get_db_driver_name(Connection),
-                          Exists = apply(Driver, exists, [Connection, Key]),
-                          Exists.
+exists( Connection, Key ) -> Driver = get_db_driver_name( Connection ),
+                             Exists = apply( Driver, exists, [ Connection, Key ] ),
+                             Exists.
 
 
 

@@ -9,13 +9,6 @@
 
 name( ) -> "MNesia".
 
-connect(Connection) -> %Hostname = proplists:get_value(hostname, Connection)
-                       %{ok, C} = riak:client_connect(Hostname),
-                       ok.
-
-
-
-
 
 
 to_binary(Value) when is_binary(Value) -> Value;
@@ -28,7 +21,7 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 get_property_names( ConnectionArgs, Key ) -> 
 
                                  Data = get( ConnectionArgs, Key ),
-                                 NamesWithDuplicates = [ Prop || {Prop,Value} <- Data ],
+                                 NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
                                  NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
                                  UniqueList = sets:to_list(NoDuplicatesSet),
                                  UniqueList.
@@ -56,7 +49,7 @@ has_property( ConnectionArgs, Key, PropertyName) ->
 
 
 
-get( ConnectionArgs, Key ) -> 
+get( _ConnectionArgs, Key ) -> 
                               BinaryKey = to_binary( Key ),
                               
                               Value  = get_val( BinaryKey ),
@@ -71,7 +64,7 @@ get( ConnectionArgs, Key ) ->
 
 
 
-set( ConnectionArgs, Key, Value) -> 
+set( _ConnectionArgs, Key, Value) -> 
                                     BinaryKey = to_binary(Key),
                                     
                                     put_val( BinaryKey, Value ),
@@ -89,11 +82,9 @@ create_record(ConnectionArgs) -> UUID = uuid(),
                                  create_record(ConnectionArgs, UUID).
 
 
-create_record(ConnectionArgs, Id) -> 
+create_record(_ConnectionArgs, Id) -> 
 
                                  Key = list_to_binary(Id),
-                                 RiakClient = connect( ConnectionArgs ),
-                                 
                                  
                                  put_val( Key , []),
                                  Key.
@@ -105,8 +96,7 @@ create_record(ConnectionArgs, Id) ->
 
 
 
-add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
-                                                
+add_property(_C, Key, PropertyName, Value) ->                                                    
                                                 BinaryKey = to_binary(Key),
 
                                                 CurrentValues  = get_val( BinaryKey ),
@@ -126,7 +116,7 @@ add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
 
 
 update_property(Connection, Key,Property,Value) -> 
-                            RiakClient = connect( Connection ),
+                            RiakClient = connect,
                             Bucket = proplists:get_value(bucket, Connection),
 
                             { ok, Item } = RiakClient:get(
@@ -149,7 +139,7 @@ update_property(Connection, Key,Property,Value) ->
 
 
 
-delete_property(Connection, Key, Property) -> RiakClient = connect( Connection ),
+delete_property(Connection, Key, Property) -> RiakClient = connect,
                                        Bucket = proplists:get_value(bucket, Connection),
                                        { ok, Item } = RiakClient:get(
                                            Bucket,
@@ -175,7 +165,7 @@ delete_property(Connection, Key, Property) -> RiakClient = connect( Connection )
 
 delete_property(ConnectionArgs, Key,Property, Value) -> 
 
-                                RiakClient = connect( ConnectionArgs ),
+                                RiakClient = connect,
                                 Bucket = proplists:get_value(bucket, ConnectionArgs),
 
                                 { ok, Item } = RiakClient:get(
@@ -201,7 +191,7 @@ delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 
 
 
-exists(Connection, Key) ->  RiakClient = connect( Connection ),
+exists(_Connection, Key) ->  
                             BinaryKey = to_binary(Key),
 
                             try
@@ -217,7 +207,7 @@ exists(Connection, Key) ->  RiakClient = connect( Connection ),
 
 
 
-delete(Connection, Key) ->      RiakClient = connect( Connection ),
+delete(_Connection, Key) ->      
                                 BinaryKey = to_binary(Key),
                                 
 
@@ -229,7 +219,7 @@ delete(Connection, Key) ->      RiakClient = connect( Connection ),
 
 
 
-ls(Connection) -> RiakClient = connect( Connection ),
+ls(_Connection) -> 
                   Keys = list_keys( ),
                   Keys.
 

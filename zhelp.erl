@@ -1,6 +1,6 @@
 -module(zhelp).
 -compile(export_all).
--import(zprint,[p/1]).
+-import(zprint,[p/1,println/1]).
 
 help()         ->   p("-----------------------------------------------------------------"),
                     p("- To get help on a module use MODULE_NAME:help()                -"),

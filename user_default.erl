@@ -66,6 +66,7 @@ new( ) -> DB = get_db(),
           Id = Record:id(),
           Id.
 
+session( Db ) -> zqloo:new( Db ).
 
 set(Key,Value) -> zql:set(db(),Key,Value).
 

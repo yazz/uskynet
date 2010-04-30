@@ -4,8 +4,13 @@
 -import(zutils,[uuid/0]).
 -include_lib("cassandra_types.hrl").
 
+get_timestamp() ->
+    {Mega,Sec,Micro} = erlang:now(),
+    (Mega*1000000+Sec)*1000000+Micro.
+
 test() -> ConnectionArgs = local_cassandra_connection(),
           test_with_connection( ConnectionArgs ).
+
 test_with_connection(C) ->
 
                 println("Number of records in datastore:"),
@@ -44,13 +49,14 @@ test_with_connection2(C) ->
 
 
 lc() -> local_cassandra_connection().
-local_cassandra_connection() -> 
-         CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
-         CassandraConnection.
 
-connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
-                       {ok, C} = thrift_client:start_link(Hostname,9160, cassandra_thrift),
-                       C.
+local_cassandra_connection() -> CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
+                                CassandraConnection.
+
+
+connect( ConnectionArgs ) -> Hostname = proplists:get_value( hostname, ConnectionArgs ),
+                             {ok, C} = thrift_client:start_link( Hostname , 9160 , cassandra_thrift ),
+                             C.
 
 
 
@@ -64,47 +70,12 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 
-get_property_name2s( ConnectionArgs, Key ) -> 
-
-                                 Data = get( ConnectionArgs, Key ),
-                                 NamesWithDuplicates = [ Prop || {Prop,Value} <- Data ],
-                                 NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
-                                 UniqueList = sets:to_list(NoDuplicatesSet),
-                                 UniqueList.
 
 
 
-get_property( ConnectionArgs, Key, PropertyName) -> 
-
-                                 Data = get( ConnectionArgs, Key ),
-                                 Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
-                                 [{_PN, V} | _] = Value,
-                                 V.
-
-
-
-
-
-has_property( ConnectionArgs, Key, PropertyName) -> 
-
-                                               PropertyNames = get_property_names( ConnectionArgs, Key),
-                                               ContainsKey = lists:member( PropertyName, PropertyNames),
-                                               ContainsKey.
-
-
-
-
-
-get( ConnectionArgs, Key ) -> RiakClient = connect( ConnectionArgs ),
-                              BinaryKey = to_binary( Key ),
-                              Bucket = proplists:get_value( bucket, ConnectionArgs ),
-                              { ok, Item } = RiakClient:get(
-                                  Bucket,
-                                  BinaryKey,
-                                  1),
-
-                              Value = riak_object:get_value( Item ),
-                              Value.
+has_property( ConnectionArgs, Key, PropertyName) -> PropertyNames = get_property_names( ConnectionArgs, Key),
+                                                    ContainsKey = lists:member( PropertyName, PropertyNames),
+                                                    ContainsKey.
 
 
 
@@ -119,10 +90,8 @@ create_record(ConnectionArgs) -> UUID = uuid(),
                                  create_record(ConnectionArgs, UUID).
 
 
-create_record(ConnectionArgs, Id) -> 
-                                 Key = list_to_binary(Id),
-                                 CassandraClient = connect( ConnectionArgs ),
-                                 put(Key,""),
+create_record(Conn, Id) ->       Key = list_to_binary(Id),
+                                 set_property(Conn, Key, "Dummy","Value"),
                                  Key.
 
 
@@ -131,25 +100,23 @@ create_record(ConnectionArgs, Id) ->
 
 
 
+add_property( Conn, Key, PropertyName, Value ) -> 
 
-add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
-                                                Bucket = proplists:get_value(bucket, C),
-                                                BinaryKey = to_binary(Key),
+    C = connect( Conn ),
 
-                                                { ok, Item } = RiakClient:get(
-                                                    Bucket,
-                                                    BinaryKey,
-                                                    1),
-                                                CurrentValues = riak_object:get_value( Item ),
-                                                UpdatedValue = [{PropertyName,Value} | CurrentValues],
-
-                                                UpdatedItem = riak_object:update_value(
-                                                    Item,
-                                                    UpdatedValue),
-                                                RiakClient:put( UpdatedItem, 1).
-
-
-
+    thrift_client:call( 
+                        C,
+                        'insert',
+                        [ 
+                          "Keyspace1",
+                          Key,
+                          #columnPath{ column_family = "KeyValue", column = PropertyName },
+                          Value,
+                          get_timestamp(),
+                          1
+                        ] 
+                      ),
+    ok.
 
 
 
@@ -157,24 +124,10 @@ add_property(C, Key, PropertyName, Value) ->    RiakClient = connect( C ),
 
 
 
-update_property(Connection, Key,Property,Value) -> 
-                            RiakClient = connect( Connection ),
-                            Bucket = proplists:get_value(bucket, Connection),
 
-                            { ok, Item } = RiakClient:get(
-                                 Bucket,
-                                 Key,
-                                 1),
 
-                            CurrentValues = riak_object:get_value( Item ),
-                            DeletedPropertyList = delete_property_list( Property, CurrentValues),
-                            UpdatedValue = [{Property,Value} | DeletedPropertyList],
 
-                            UpdatedItem = riak_object:update_value(
-                                                 Item,
-                                                 UpdatedValue),
-
-                            RiakClient:put( UpdatedItem, 1).                                       
+update_property(Connection, Key,Property,Value) -> set_property( Connection, Key, Property, Value).
 
 
 
@@ -233,17 +186,16 @@ delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 
 
 
-exists(Connection, Key) ->  CassandraClient = connect( Connection ),
+exists(Connection, Key) ->  
                             BinaryKey = to_binary(Key),
-                            Bucket = proplists:get_value(bucket, Connection),
 
                             try
-                                get(Connection, Key)
+                                get(Connection, BinaryKey)
                             of
                                 _ -> true
                             catch
 
-                                error:_Reason -> false
+                                _:_Reason -> false
 		            end.
 
 
@@ -252,22 +204,20 @@ exists(Connection, Key) ->  CassandraClient = connect( Connection ),
 
 
 delete(Key) -> delete(lc(),Key).
-delete(Connection,Key) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
-
-               S = #sliceRange{start="",finish="",reversed=false,count=100},
+delete(Conn,Key) -> C = connect( Conn ),
 
                List = thrift_client:call( C,
                    'remove',
                    [ "Keyspace1",
                      Key,
                      #columnPath{column_family="KeyValue"},
-                     1,
+                     get_timestamp(),
                      1
                      ] ),
                List.
 
 from_keyslice2( [] ) -> [];
-from_keyslice2( [{keySlice, Key, Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
+from_keyslice2( [{keySlice, Key, _Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
 
 
 
@@ -293,34 +243,21 @@ delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
 
 
 set(K,V) -> set(lc(),K,V).
-set(Conn,K,V) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
-
-            thrift_client:call( C,
+set(ConnArgs,K,V) -> 
+               C=connect(ConnArgs),  
+               thrift_client:call( C,
                    'insert',
                    [ "Keyspace1",
                      K,
                      #columnPath{column_family="KeyValue", column="value"},
                      V,
-                     1,
+                     get_timestamp(),
                      1
                      ] ).
 
-get(K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+get(K) -> get( lc(), K).
 
-            X = thrift_client:call( C,
-                   'get',
-                   [ "Keyspace1",
-                     K,
-                     #columnPath{column_family="KeyValue", column="value"},
-                     
-                     1
-                     ] ),
-            X.
-
-
-names() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
-thrift_client:call(C, getTableNames, []).
-
+get(C,K) -> get_property(C,K,"value").
 
 
 
@@ -328,29 +265,19 @@ thrift_client:call(C, getTableNames, []).
 
 set_property( Key, PropertyName, Value ) -> set_property( lc(), Key, PropertyName, Value ).
 
-set_property( Conn, K, P, V ) -> 
+set_property( ConnArgs, K, P, V ) -> 
+               C=connect(ConnArgs),  
 
-  {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
-         
-  MutationMap = 
-  {
-    <<"i2">>, 
-    {
-      <<"KeyValue">>, 
-      [
-        #mutation{ 
-          column_or_supercolumn = #column{ name = <<"value">> , value = <<"value">> , timestamp = 1 } 
-        }
-      ]
-    }
-  },
-
-  thrift_client:call( C,
-    'batch_mutate',
-    [ "Keyspace1",
-       MutationMap,
-       1
-    ] ).
+    thrift_client:call( C,
+                   'insert',
+                   [ "Keyspace1",
+                     K,
+                     #columnPath{column_family="KeyValue", column=P},
+                     V,
+                     get_timestamp(),
+                     1
+                     ] ),
+    ok.
 
 
 
@@ -359,21 +286,35 @@ set_property( Conn, K, P, V ) ->
 
 
 
-getv(K,P) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+
+get_property( Conn, Key, P) -> 
+
+            C=connect(Conn),  
 
             X = thrift_client:call( C,
                    'get',
                    [ "Keyspace1",
-                     K,
+                     Key,
                      #columnPath{column_family="KeyValue", column=P},
-
                      1
                      ] ),
-            X.
+            {ok,{columnOrSuperColumn,Col,_}} = X,
+            {_,_,Val,_} = Col,
+            Val.
 
 
-get_property_names(Conn,K) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+from_return_values( [] ) -> [];
 
+from_return_values( [{columnOrSuperColumn, {column,PropName, _Value, _Count},undefined} | Tail] ) 
+                 -> 
+                    [PropName | from_returnlist(Tail) ].
+
+
+
+get_property_names(K) -> get_property_names(lc(),K).
+
+get_property_names(Conn,K) -> 
+            C=connect(Conn), 
             S = #sliceRange{start="",finish="",reversed=false,count=100},
             CassandraReturn = thrift_client:call( C,
                    'get_slice',
@@ -384,18 +325,18 @@ get_property_names(Conn,K) -> {ok, C} = thrift_client:start_link("127.0.0.1",916
                      1
                      ] ),
             {ok, ReturnList} = CassandraReturn,
-            ReturnList,
+
             List = from_returnlist(ReturnList),
 
             NoDuplicatesSet = sets:from_list(List),
-                                 UniqueList = sets:to_list(NoDuplicatesSet),
-                                 UniqueList.
+            UniqueList = sets:to_list(NoDuplicatesSet),
+            UniqueList.
 
 
 
 from_returnlist( [] ) -> [];
 
-from_returnlist( [{columnOrSuperColumn, {column,PropName, Value,Count},undefined} | Tail] ) 
+from_returnlist( [{columnOrSuperColumn, {column,PropName, _Value,_Count},undefined} | Tail] ) 
                  -> 
                     [PropName | from_returnlist(Tail) ].
 
@@ -408,7 +349,7 @@ v() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
 
 
 ls() -> ls(lc()).
-ls(Co) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+ls(Conn) -> C = connect( Conn),
 
             S = #sliceRange{start="",finish="",reversed=false,count=100},
 
@@ -425,6 +366,63 @@ ls(Co) -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift)
             Keys.
 
 from_keyslice( [] ) -> [];
-from_keyslice( [{keySlice, Key, Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
+from_keyslice( [{keySlice, Key, _Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
+
+
+
+
+
+test_mutate() ->
+
+  {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
+
+  Key = "Key3",  
+
+  %
+  % set first property
+  %        
+  thrift_client:call( C,
+                   'insert',
+                   [ "Keyspace1",
+                     Key,
+                     #columnPath{column_family="KeyValue", column="value"},
+                     "value1",
+                     get_timestamp(),
+                     1
+                     ] ),
+  thrift_client:call( C,
+                   'insert',
+                   [ "Keyspace1",
+                     Key,
+                     #columnPath{column_family="KeyValue", column="value2"},
+                     "value1",
+                     1,
+                     1
+                     ] ),
+
+  %
+  % set second property ( fails! - why? )
+  %
+  MutationMap = 
+  {
+    Key, 
+    {
+      "KeyValue", 
+      [
+        #mutation{ 
+          column_or_supercolumn = #column{ name = "property" , value = "value" , timestamp = get_timestamp() } 
+        }
+      ]
+    }
+  },
+
+  thrift_client:call( C,
+    'batch_mutate',
+    [ "Keyspace1",
+       MutationMap,
+       1
+    ] )
+
+  .
 
 
