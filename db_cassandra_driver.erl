@@ -1,7 +1,7 @@
 -module(db_cassandra_driver).
 -compile(export_all).
 -import(zprint,[println/1,p/1,q/1,print_number/1]).
--import(zutils,[uuid/0]).
+-import(zutils,[uuid/0,to_binary/1]).
 -include_lib("cassandra_types.hrl").
 
 get_timestamp() ->
@@ -20,7 +20,27 @@ test_with_connection(C) ->
                 zql:delete_all(C,yes_im_sure),                
 
                 zql:set(C, "boy", "Is here"),
-                println("\nSaved 'boy' as 'is here'").
+                println("\nSaved 'boy' as 'is here'"),
+                Value = zql:get(C, "boy"),
+
+                println("got value of boy as : "),               
+                println(Value),
+
+                println("Check 'boy' exists :"),
+                Exists = zql:exists(C, "boy"),
+                println(Exists),
+
+                zql:delete(C,"boy"),
+                println("deleted 'boy'"),
+                println("Check 'boy' exists :"),
+
+                Exists2 = zql:exists(C, "boy"),
+                println(Exists2),
+                println("-----------------------"),
+
+                LogEntry = zql:create_record(C),
+                zql:set_property(C,LogEntry,"type","log").
+
 
 test_with_connection2(C) ->
                 println("Number of records in datastore:"),
@@ -37,6 +57,7 @@ test_with_connection2(C) ->
                 println("Check 'boy' exists :"),
                 Exists = zql:exists(C, "boy"),
                 println(Exists),
+
                 zql:delete(C,"boy"),
                 println("deleted 'boy'"),
                 println("Check 'boy' exists :"),
@@ -63,13 +84,6 @@ connect( ConnectionArgs ) -> Hostname = proplists:get_value( hostname, Connectio
 
 
 
-to_binary(Value) when is_binary(Value) -> Value;
-to_binary(Value) when is_list(Value) -> list_to_binary(Value).
-
-
-
-
-
 
 
 
@@ -90,7 +104,7 @@ create_record(ConnectionArgs) -> UUID = uuid(),
                                  create_record(ConnectionArgs, UUID).
 
 
-create_record(Conn, Id) ->       Key = list_to_binary(Id),
+create_record(Conn, Id) ->       Key = to_binary(Id),
                                  set_property(Conn, Key, "Dummy","Value"),
                                  Key.
 
@@ -204,20 +218,18 @@ exists(Connection, Key) ->
 
 
 delete(Key) -> delete(lc(),Key).
+
 delete(Conn,Key) -> C = connect( Conn ),
 
-               List = thrift_client:call( C,
-                   'remove',
-                   [ "Keyspace1",
-                     Key,
-                     #columnPath{column_family="KeyValue"},
-                     get_timestamp(),
-                     1
-                     ] ),
-               List.
-
-from_keyslice2( [] ) -> [];
-from_keyslice2( [{keySlice, Key, _Values} | Tail] ) -> [Key | from_keyslice(Tail) ].
+                    List = thrift_client:call( C,
+                                               'remove',
+                                               [ "Keyspace1",
+                                                 Key,
+                                                 #columnPath{column_family="KeyValue"},
+                                                 get_timestamp(),
+                                                 1
+                                               ] ),
+                    List.
 
 
 
@@ -225,9 +237,11 @@ from_keyslice2( [{keySlice, Key, _Values} | Tail] ) -> [Key | from_keyslice(Tail
 
 
 
-count(Connection) -> Keys = ls(Connection),
-                     Count = length(Keys),
-                     Count.
+
+
+count( Conn ) -> Keys = ls( Conn ),
+                 Count = length(Keys),
+                 Count.
 
 
 
@@ -235,10 +249,10 @@ count(Connection) -> Keys = ls(Connection),
 
 
 
-delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
-                                               DeleteFunction = fun(Key) -> delete( ConnectionArgs , Key ) end,
-                                               lists:map( DeleteFunction , Keys),
-                                               ok.
+delete_all( Conn , yes_im_sure ) ->  Keys = ls( Conn ),
+                                     DeleteFunction = fun(Key) -> delete( Conn , Key ) end,
+                                     lists:map( DeleteFunction , Keys),
+                                     ok.
 
 
 

@@ -327,7 +327,7 @@ q('- >> "Bob"                                                          -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, value ),
+get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, "value" ),
                               Value.
 
 
@@ -391,9 +391,9 @@ q('- set( ConnectionArgs, "system", "windows" ).                       -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ).
+set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, "value", Value ).
 
-put( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ). 
+put( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, "value", Value ). 
 
 
 
@@ -526,6 +526,7 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 delete_property_value(C, Key, PropertyName, Value) ->  
+
                              Driver = get_db_driver_name(C),
                              apply(Driver, delete_property, [C, Key, PropertyName, Value]),
                              ok.
