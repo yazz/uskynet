@@ -121,10 +121,21 @@ add_code( ) ->                 add_code("", "").
 
 
 
+set_last_thing( Id ) -> 
+                 RecentlyUsed = (getdb()):create_record("last_used"),
+                 RecentlyUsed:set("last",Id).
 
-
-store( Text ) -> ContentKey = sha1:hexstring( Text ),
+store( Text ) -> %ContentKey = sha1:hexstring( Text ),
                  Oodb = getdb(),
-                 Record = Oodb:create_record( ContentKey ),
+                 Record = Oodb:create_record( ),
                  Record:set( Text ),
+                 Record.
+
+%it_is_a( Type ) -> add_relationship( X, "is a", Y ).
+
+add_relationship( X, Relationship, Y ) ->
+
+                 Oodb = getdb(),
+                 Record = Oodb:create_record( ),
+                 Record:set( type, relationship ),
                  Record.
