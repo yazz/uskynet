@@ -1,101 +1,28 @@
 -module(db_cassandra_driver).
 -compile(export_all).
 -import(zprint,[println/1,p/1,q/1,print_number/1]).
--import(zutils,[uuid/0,to_binary/1]).
+-import(zutils,[uuid/0,to_binary/1,get_timestamp_microseconds/0]).
 -include_lib("cassandra_types.hrl").
 
-get_timestamp() ->
-    {Mega,Sec,Micro} = erlang:now(),
-    (Mega*1000000+Sec)*1000000+Micro.
+name() -> "Cassandra database".
 
-test() -> ConnectionArgs = local_cassandra_connection(),
-          test_with_connection( ConnectionArgs ).
+test() -> Conn = local_cassandra_connection_args(),
+          zql:test_with_connection( Conn ).
 
-test_with_connection(C) ->
-
-                println("Number of records in datastore:"),
-                Count = count(C),
-                print_number(Count),
-
-                zql:delete_all(C,yes_im_sure),                
-
-                zql:set(C, "boy", "Is here"),
-                println("\nSaved 'boy' as 'is here'"),
-                Value = zql:get(C, "boy"),
-
-                println("got value of boy as : "),               
-                println(Value),
-
-                println("Check 'boy' exists :"),
-                Exists = zql:exists(C, "boy"),
-                println(Exists),
-
-                zql:delete(C,"boy"),
-                println("deleted 'boy'"),
-                println("Check 'boy' exists :"),
-
-                Exists2 = zql:exists(C, "boy"),
-                println(Exists2),
-                println("-----------------------"),
-
-                LogEntry = zql:create_record(C),
-                zql:set_property(C,LogEntry,"type","log").
-
-
-test_with_connection2(C) ->
-                println("Number of records in datastore:"),
-                Count = count(C),
-                print_number(Count),
-
-                zql:delete_all(C,yes_im_sure),                
-
-                zql:set(C, "boy", "Is here"),
-                println("\nSaved 'boy' as 'is here'"),
-                Value = zql:get(C, "boy"),
-                println("got value of boy as : "),               
-                println(Value),
-                println("Check 'boy' exists :"),
-                Exists = zql:exists(C, "boy"),
-                println(Exists),
-
-                zql:delete(C,"boy"),
-                println("deleted 'boy'"),
-                println("Check 'boy' exists :"),
-                Exists2 = zql:exists(C, "boy"),
-                println(Exists2),
-                println("-----------------------"),
-
-                LogEntry = zql:create_record(C),
-                zql:set_property(C,LogEntry,"type","log").
-
-
-lc() -> local_cassandra_connection().
-
-local_cassandra_connection() -> CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
-                                CassandraConnection.
+lc() -> local_cassandra_connection_args().
+local_cassandra_connection_args() -> CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
+                                     CassandraConnection.
 
 
 connect( ConnectionArgs ) -> Hostname = proplists:get_value( hostname, ConnectionArgs ),
-                             {ok, C} = thrift_client:start_link( Hostname , 9160 , cassandra_thrift ),
-                             C.
+                             { ok, Conn } = thrift_client:start_link( Hostname , 9160 , cassandra_thrift ),
+                             Conn.
 
 
 
-
-
-
-
-
-
-has_property( ConnectionArgs, Key, PropertyName) -> PropertyNames = get_property_names( ConnectionArgs, Key),
-                                                    ContainsKey = lists:member( PropertyName, PropertyNames),
-                                                    ContainsKey.
-
-
-
-
-
-
+has_property( ConnArgs, Key, PropertyName) -> PropertyNames = get_property_names( ConnArgs, Key),
+                                              ContainsKey = lists:member( PropertyName, PropertyNames),
+                                              ContainsKey.
 
 
 
@@ -104,9 +31,12 @@ create_record(ConnectionArgs) -> UUID = uuid(),
                                  create_record(ConnectionArgs, UUID).
 
 
-create_record(Conn, Id) ->       Key = to_binary(Id),
-                                 set_property(Conn, Key, "Dummy","Value"),
-                                 Key.
+
+
+create_record( Conn, Id ) -> 
+                             Key = to_binary(Id),
+                             set_property( Conn , Key , "value", "" ),
+                             Key.
 
 
 
@@ -126,7 +56,7 @@ add_property( Conn, Key, PropertyName, Value ) ->
                           Key,
                           #columnPath{ column_family = "KeyValue", column = PropertyName },
                           Value,
-                          get_timestamp(),
+                          get_timestamp_microseconds(),
                           1
                         ] 
                       ),
@@ -141,7 +71,7 @@ add_property( Conn, Key, PropertyName, Value ) ->
 
 
 
-update_property(Connection, Key,Property,Value) -> set_property( Connection, Key, Property, Value).
+update_property( Conn, Key, Property, Value ) -> set_property( Conn, Key, Property, Value ).
 
 
 
@@ -200,8 +130,7 @@ delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 
 
 
-exists(Connection, Key) ->  
-                            BinaryKey = to_binary(Key),
+exists(Connection, Key) ->  BinaryKey = to_binary(Key),
 
                             try
                                 get(Connection, BinaryKey)
@@ -226,7 +155,7 @@ delete(Conn,Key) -> C = connect( Conn ),
                                                [ "Keyspace1",
                                                  Key,
                                                  #columnPath{column_family="KeyValue"},
-                                                 get_timestamp(),
+                                                 get_timestamp_microseconds(),
                                                  1
                                                ] ),
                     List.
@@ -265,7 +194,7 @@ set(ConnArgs,K,V) ->
                      K,
                      #columnPath{column_family="KeyValue", column="value"},
                      V,
-                     get_timestamp(),
+                     get_timestamp_microseconds(),
                      1
                      ] ).
 
@@ -288,7 +217,7 @@ set_property( ConnArgs, K, P, V ) ->
                      K,
                      #columnPath{column_family="KeyValue", column=P},
                      V,
-                     get_timestamp(),
+                     get_timestamp_microseconds(),
                      1
                      ] ),
     ok.
@@ -401,7 +330,7 @@ test_mutate() ->
                      Key,
                      #columnPath{column_family="KeyValue", column="value"},
                      "value1",
-                     get_timestamp(),
+                     get_timestamp_microseconds(),
                      1
                      ] ),
   thrift_client:call( C,
@@ -424,7 +353,7 @@ test_mutate() ->
       "KeyValue", 
       [
         #mutation{ 
-          column_or_supercolumn = #column{ name = "property" , value = "value" , timestamp = get_timestamp() } 
+          column_or_supercolumn = #column{ name = "property" , value = "value" , timestamp = get_timestamp_microseconds() } 
         }
       ]
     }

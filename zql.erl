@@ -40,9 +40,9 @@ p("connect (ConnectionArgs)                         connect to the database     
 p("get (ConnectionArgs, Key)                        get the value of Key        "),
 p("                                                                             "),
 p(" Example:                                                                    "),
-p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
-q('zql:set(C, "Name", "Scott").                                                 '),
-q('zql:get(C, "Name" ).                                                         '),
+q(' C = [ {driver,db_cassandra_driver}, {hostname,"127.0.0.1"}].                '),
+q(' zql:set(C, "Name", "Scott").                                                '),
+q(' zql:get(C, "Name" ).                                                        '),
 p("-----------------------------------------------------------------------------"),
 ok.
 
@@ -114,7 +114,7 @@ test_with_connection(C) ->
                 println(Exists2),
                 println("-----------------------"),
 
-                LogEntry = create_record(C),
+                LogEntry = create_record( C ),
                 set_property(C,LogEntry,"type","log").
 
 
@@ -225,26 +225,26 @@ print( ConnectionArgs, Key) ->
     io:format("ID:~s~n", [Key]),
     p("--------------------------------------------------------------"),
 
-    try ( print_fn(ConnectionArgs,Key )) of 
+    try ( print_fn( ConnectionArgs, Key )) of 
       ok -> ok
     catch
-        _:_ -> error
+        _:_ -> p("error")
     end,
     p("--------------------------------------------------------------"),
     p(""),
     ok.
 
-print_fn(ConnectionArgs,Key) ->
-
-    PropertyNames = get_property_names( ConnectionArgs, Key),
+print_fn( Conn, Key ) ->
+          
+    PropertyNames = get_property_names( Conn, Key ),
     lists:foreach(
              fun( PropertyName ) ->
-                  PropValue = get_property( ConnectionArgs, Key, PropertyName), 
+                  PropValue = get_property( Conn , Key, PropertyName), 
                   io:format( "~s:~s~n", [ PropertyName, PropValue ]) 
              end,
              PropertyNames),
              ok.
-             
+
 
 
 
@@ -415,13 +415,16 @@ p("- ConnectionArgs = local( ).                                        -"),
 p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
-create_record(Connection) -> Driver = get_db_driver_name(Connection),
-                             Key = apply(Driver, create_record, [Connection]),
-                             Key.
+create_record( Conn ) -> Driver = get_db_driver_name( Conn ),
+                         Key = apply( Driver, create_record, [ Conn ] ),
+                         Key.
 
-create_record(Connection,Id) -> Driver = get_db_driver_name(Connection),
-                                Key = apply(Driver, create_record, [Connection, Id]),
-                                Key.
+create_record( Conn , Key ) -> 
+                               Driver = get_db_driver_name( Conn ),
+
+                               Key2 = apply( Driver, create_record, [ Conn , Key ] ),
+
+                               Key2.
 
 
 

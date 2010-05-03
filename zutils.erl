@@ -13,3 +13,7 @@ uuid() -> hex_uuid().
 remove_newline(Line) -> Length = length(Line),
                         NewLine = lists:sublist( Line, Length - 1),
                         NewLine.
+
+get_timestamp_microseconds() ->
+    {Mega,Sec,Micro} = erlang:now(),
+    (Mega*1000000+Sec)*1000000+Micro.

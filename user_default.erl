@@ -41,34 +41,53 @@ p("print (ConnectionArgs, ID)                       print record with key ID    
 p("print_all (ConnectionArgs)                       print all records           "),
 p("connect (ConnectionArgs)                         connect to the database     "),
 p("get (ConnectionArgs, Key)                        get the value of Key        "),
-
 p("                                                                             "),
 p(" Example:                                                                    "),
-p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
-q('zql:set(C, "Name", "Scott").                                                 '),
-q('zql:get(C, "Name" ).                                                         '),
+q(' C = [ {driver,db_cassandra_driver}, {hostname,"127.0.0.1"}].                '),
+q(' zql:set(C, "Name", "Scott").                                                '),
+q(' zql:get(C, "Name" ).                                                        '),
 p("-----------------------------------------------------------------------------"),
 ok.
 
 
 hello( ) -> p("Hello. System is available").
 
+
+
+
+
+
+
+get_db( ) -> DB = zql:session(db()),
+             DB.
+getdb() -> get_db().
+
+db( ) -> db_cassandra_driver:lc().
+
 whichdb( ) -> zql:whichdb( db() ).
 
-lsdb( ) -> zql:ls( db()).
+session( Db ) -> zqloo:new( Db ).
+
+test( ) -> zql:test_with_connection( db() ).
+
+
+
+lsdb( ) -> zql:ls( db() ).
 
 count( ) -> zql:count( db() ).
 
-db( ) -> zql:local().
+
 
 new( ) -> DB = get_db(),
           Record = DB:create_record( ),
           Id = Record:id(),
-          Id.
+          CodeRecord = recordoo:new( DB, Id ),
+          CodeRecord.
 
-session( Db ) -> zqloo:new( Db ).
 
-set(Key,Value) -> zql:set(db(),Key,Value).
+
+
+set(Key,Value) -> zql:set( db(), Key, Value).
 
 find( ) -> count( ).
 
@@ -79,8 +98,6 @@ add(Type) -> DB = get_db(),
 
 
 
-get_db( ) -> DB = zql:session(db()),
-             DB.
 
 last_added( ) -> zprint:p("Show the last added record").
              
@@ -103,3 +120,11 @@ add_code(TriggerRule, Code) -> DB = get_db(),
 add_code( ) ->                 add_code("", "").
 
 
+
+
+
+store( Text ) -> ContentKey = sha1:hexstring( Text ),
+                 Oodb = getdb(),
+                 Record = Oodb:create_record( ContentKey ),
+                 Record:set( Text ),
+                 Record.

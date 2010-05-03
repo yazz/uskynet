@@ -36,17 +36,30 @@ q('DB:get("Name" ).                                                             
 p("-----------------------------------------------------------------------------"),
 ok.
 
-get(Key) -> zql:get( Conn, Key).
+get(Key) -> zql:get( Conn, Key ).
+
 set(Key,Value) -> zql:set(Conn, Key, Value).
+
 ls( ) -> zql:ls(Conn).
+
 print_all( ) -> zql:print_all( Conn ).
+
 count( ) -> zql:count(Conn).
 
+connection() -> Conn.
 
 get_record(Key) -> recordoo:new(Conn,Key).
 
 create_record( ) -> Key = zql:create_record( Conn ),
                     Record = recordoo:new( Conn, Key ),
                     Record.
+
+create_record( Key ) -> 
+                        RecordId = zql:create_record( Conn , Key ),
+                        Record = recordoo:new( Conn, RecordId ),
+                        Record.
+
+
+
 
 exists(Key) -> zql:exists(Conn,Key).
