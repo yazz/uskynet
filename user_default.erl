@@ -3,6 +3,7 @@
 
 -import(zprint,[println/1,p/1,q/1,print_number/1]).
 
+
 zhelp() -> 
 p("-----------------------------------------------------------------------------"),
 p("-                                                                           -"),
@@ -78,16 +79,12 @@ count( ) -> zql:count( db() ).
 
 
 
-new( ) -> DB = get_db(),
-          Record = DB:create_record( ),
-          Id = Record:id(),
-          CodeRecord = recordoo:new( DB, Id ),
-          CodeRecord.
 
 
 
 
 set(Key,Value) -> zql:set( db(), Key, Value).
+get(Key) -> zql:get( db(), Key ).
 
 find( ) -> count( ).
 
@@ -99,7 +96,8 @@ add(Type) -> DB = get_db(),
 
 
 
-last_added( ) -> zprint:p("Show the last added record").
+pl( ) -> Last = last(),
+         Last:print().
              
 
 
@@ -121,14 +119,28 @@ add_code( ) ->                 add_code("", "").
 
 
 
-set_last_thing( Id ) -> 
-                 RecentlyUsed = (getdb()):create_record("last_used"),
-                 RecentlyUsed:set("last",Id).
+last( Record )      -> Oodb = getdb(), 
+                       RecentlyUsed = Oodb:create_record("last_used"),
+                       RecentlyUsed:set( "last", Record:id() ).
 
-store( Text ) -> %ContentKey = sha1:hexstring( Text ),
+last() ->      Oodb = getdb(),
+               LastUsed = Oodb:get_record("last_used"),
+               Id = LastUsed:get("last"),
+               Record = Oodb:get_record(Id),
+               Record.
+
+new( ) -> DB = get_db(),
+          Record = DB:create_record( ),
+          Record.
+
+%ContentKey = sha1:hexstring( Text ),
+
+store(Text) -> new( Text ).
+new( Text ) -> 
                  Oodb = getdb(),
                  Record = Oodb:create_record( ),
                  Record:set( Text ),
+                 last(Record),
                  Record.
 
 %it_is_a( Type ) -> add_relationship( X, "is a", Y ).
@@ -137,5 +149,7 @@ add_relationship( X, Relationship, Y ) ->
 
                  Oodb = getdb(),
                  Record = Oodb:create_record( ),
-                 Record:set( type, relationship ),
+                 Record:set( "type", Relationship ),
+                 Record:set( "first", X:id() ),
+                 Record:set( "second", Y:id() ),
                  Record.
