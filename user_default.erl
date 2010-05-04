@@ -85,6 +85,7 @@ count( ) -> zql:count( db() ).
 
 set(Key,Value) -> zql:set( db(), Key, Value).
 get(Key) -> zql:get( db(), Key ).
+get_record(Key) -> (getdb()):get_record(Key).
 
 find( ) -> count( ).
 
@@ -95,12 +96,16 @@ add(Type) -> DB = get_db(),
 
 
 
-
-pl( ) -> Last = last(),
+lp() ->  Last = last(),
          Last:print().
+
+lp2() -> Last2 = last2(),
+         Last2:print().
              
+c() -> cp:cp().
 
-
+history() -> lp2(),
+             lp().
 
 start() -> db_mnesia_driver:start().
 
@@ -121,11 +126,19 @@ add_code( ) ->                 add_code("", "").
 
 last( Record )      -> Oodb = getdb(), 
                        RecentlyUsed = Oodb:create_record("last_used"),
+                       LastId = RecentlyUsed:get("last"),
+                       RecentlyUsed:set( "last2", LastId ),
                        RecentlyUsed:set( "last", Record:id() ).
 
 last() ->      Oodb = getdb(),
                LastUsed = Oodb:get_record("last_used"),
                Id = LastUsed:get("last"),
+               Record = Oodb:get_record(Id),
+               Record.
+
+last2() ->     Oodb = getdb(),
+               LastUsed = Oodb:get_record("last_used"),
+               Id = LastUsed:get("last2"),
                Record = Oodb:get_record(Id),
                Record.
 
@@ -152,4 +165,7 @@ add_relationship( X, Relationship, Y ) ->
                  Record:set( "type", Relationship ),
                  Record:set( "first", X:id() ),
                  Record:set( "second", Y:id() ),
+                 last(Record),
                  Record.
+
+r( Relationship ) -> add_relationship( last() , Relationship, last2() ).

@@ -14,5 +14,7 @@ c:c(db_mnesia_driver),
 c:c(db_riak_driver),
 c:c(db_cassandra_driver),
 c:c(user_default),
+c:c(zserver),
 c:c(cp).
+
 
