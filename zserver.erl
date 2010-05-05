@@ -23,20 +23,9 @@ stop() -> Location = global:whereis_name(server),
            end.
 
 
-loop2() ->  U=user_default,
+loop() ->   U=user_default,
             lists:foreach(fun(X) -> zprint:p(X) end, U:lsdb()),
 %            p(X),
             timer:sleep(15000),
-            loop2().
+            loop().
 
-loop() ->
-
-  receive
-      start -> 
-         p("starting server"),
-         loop();
-      stop ->
-         p("Stopping server"),
-         true
-
-  end.
