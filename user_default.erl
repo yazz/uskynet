@@ -83,8 +83,10 @@ count( ) -> zql:count( db() ).
 
 
 
-set(Key,Value) -> zql:set( db(), Key, Value).
-get(Key) -> zql:get( db(), Key ).
+s(Key,Value) -> zql:set( db(), Key, Value).
+g(Key,Value) -> zql:get_property( db(), Key, Value ).
+
+g(Key) ->         g( Key, "value" ).
 get_record(Key) -> (getdb()):get_record(Key).
 
 find( ) -> count( ).
@@ -169,3 +171,4 @@ add_relationship( X, Relationship, Y ) ->
                  Record.
 
 r( Relationship ) -> add_relationship( last() , Relationship, last2() ).
+print(X) -> zprint:p(X).
