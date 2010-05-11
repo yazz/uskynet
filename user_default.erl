@@ -172,3 +172,5 @@ add_relationship( X, Relationship, Y ) ->
 
 r( Relationship ) -> add_relationship( last() , Relationship, last2() ).
 print(X) -> zprint:p(X).
+
+sh() -> c(),sh:sh().
