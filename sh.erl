@@ -1,6 +1,6 @@
 -module(sh).
 -compile(export_all).
--include_lib("c:/usn/zql_all_imports.hrl").
+-include_lib("zql_all_imports.hrl").
 
 
 sh() -> p("------------------------------------"),
