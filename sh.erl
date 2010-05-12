@@ -1,6 +1,6 @@
 -module(sh).
 -compile(export_all).
--include_lib("c:/usn/zql_imports.hrl").
+-include_lib("c:/usn/zql_all_imports.hrl").
 
 
 sh() -> p("------------------------------------"),
@@ -23,9 +23,8 @@ p("help - this command"),
 p("it - the last thing created"),
 p("quit - exits to the command line").
 
-store(Text) -> user_default:store(Text).
 
-it() -> R = user_default:last(),
+it() -> R = last(),
         R:print().
 
 read(Args) -> p("get called with arg count of:"),
@@ -34,7 +33,7 @@ read(Args) -> p("get called with arg count of:"),
               case Num of 
                    1 -> Key = nth(1,Args),
                         SKey = to_string(Key),
-                        V = user_default:g(SKey),
+                        V = g(SKey),
                         p(V);
                    X -> print_number(X)
               end.
