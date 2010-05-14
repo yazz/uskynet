@@ -1,7 +1,6 @@
 -module(zql).
 -compile(export_all).
--import(zprint,[println/1,p/1,q/1,print_number/1]).
--import(zutils,[uuid/0]).
+-include_lib("zql_all_imports.hrl").
 
 help() -> 
 p("-----------------------------------------------------------------------------"),
@@ -16,7 +15,7 @@ p("help (Command)                                   get help on a command       
 p("test ()                                          run the self tests for zql  "),
 p("local ()                                         returns a local connection  "),
 p("test_connection( ConnectionArgs )                tests a connection          "),
-p("session( ConnectionArgs )                        returns an OO session to ZQL"),
+p("session( ConnectionArgs )                        returns a zqloo OO instance "),
 p("whichdb( COnnectionArgs )                        returns the DB name         "),
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
@@ -83,13 +82,6 @@ p("---------------------------------------------------------------------").
 test() -> ConnectionArgs = local(),
           test_with_connection( ConnectionArgs ).
 
-local_riak_connection() -> 
-         RiakConnection = [{driver,db_riak_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-         RiakConnection.
-
-local_mnesia_connection() -> 
-         MnesiaConnection = [{driver,db_mnesia_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
-         MnesiaConnection.
 
 test_with_connection(C) ->
 
@@ -143,8 +135,7 @@ p("- ConnectionArgs2 = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bu
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-local() -> %ConnectionArgs = local_riak_connection(),
-           ConnectionArgs = local_mnesia_connection(),
+local() -> ConnectionArgs = connections:local_cassandra_connection(),
            ConnectionArgs.
                 
 test_conection_help() -> 
@@ -178,13 +169,16 @@ test_conn( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
                                ok.
 
 
-session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
-                             Session.
+create_oo_session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
+                                       Session.
 
 
 whichdb( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
                              Name = apply( Driver , name, [ ]),
                              Name.
+
+
+
 
 
 
@@ -318,13 +312,16 @@ p("-           gets the value from the database for Key                -"),
 p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
-p("- ConnectionArgs = local( ).                                        -"),
-q('- set( ConnectionArgs, "Name", "Bob").                              -'),
-q('- get( ConnectionArgs, "Name").                                     -'),
-q('- >> "Bob"                                                          -'),
-q('- get_property( ConnectionArgs, "Name", value).                     -'),
-q('- >> "Bob"                                                          -'),
-p("-                                                                   -"),
+p("- > ConnectionArgs = zql:local( ).                                  -"),
+q('- > zql:set( ConnectionArgs, "Name", "Bob").                        -'),
+q('- > zql:get( ConnectionArgs, "Name").                               -'),
+q('- [ok,"Bob"]                                                        -'),
+q('                                                                    -'),
+q('- > zql:get_property( ConnectionArgs, "Name", value).               -'),
+q('- [ok,"Bob"]                                                        -'),
+q('                                                                    -'),
+q('- > zql:get( ConnectionArgs, "UndefinedThing" ).                    -'),
+q('- [not_found, item]                                                 -'),
 p("---------------------------------------------------------------------").
 
 get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, <<"value">> ),

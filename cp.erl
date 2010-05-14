@@ -3,6 +3,7 @@
 
 cp() -> 
 
+c:c(connections),
 c:c(zprint),
 c:c(zhelp),
 c:c(zql),
