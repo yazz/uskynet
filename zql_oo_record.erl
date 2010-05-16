@@ -1,4 +1,4 @@
--module(recordoo,[Conn, Key]).
+-module(zql_oo_record,[Conn, Key]).
 -compile(export_all).
 
 get_property_names( ) -> zql:get_property_names( Conn, Key ).

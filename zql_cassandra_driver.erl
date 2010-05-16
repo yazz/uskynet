@@ -1,7 +1,6 @@
--module(db_cassandra_driver).
+-module(zql_cassandra_driver).
 -compile(export_all).
--import(zprint,[println/1,p/1,q/1,print_number/1]).
--import(zutils,[uuid/0,to_binary/1,get_timestamp_microseconds/0]).
+-include_lib("zql_all_imports.hrl").
 -include_lib("cassandra_types.hrl").
 
 name() -> "Cassandra database".

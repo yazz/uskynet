@@ -15,7 +15,7 @@ p("help (Command)                                   get help on a command       
 p("test ()                                          run the self tests for zql  "),
 p("local ()                                         returns a local connection  "),
 p("test_connection( ConnectionArgs )                tests a connection          "),
-p("session( ConnectionArgs )                        returns a zqloo OO instance "),
+p("create_oo_session( ConnectionArgs )              returns a zqloo OO instance "),
 p("whichdb( COnnectionArgs )                        returns the DB name         "),
 p("                                                                             "),
 p("ls (ConnectionArgs)                                                          "),
@@ -39,14 +39,14 @@ p("connect (ConnectionArgs)                         connect to the database     
 p("get (ConnectionArgs, Key)                        get the value of Key        "),
 p("                                                                             "),
 p(" Example:                                                                    "),
-q(' C = [ {driver,db_cassandra_driver}, {hostname,"127.0.0.1"}].                '),
+q(' C = [ {driver,zql_cassandra_driver}, {hostname,"127.0.0.1"}].               '),
 q(' zql:set(C, "Name", "Scott").                                                '),
 q(' zql:get(C, "Name" ).                                                        '),
 p("-----------------------------------------------------------------------------"),
 ok.
 
 help(Command)       ->  HelpFunctionName = atom_to_list(Command) ++ "_help",
-                        apply(zql, list_to_atom(HelpFunctionName), []).
+                        apply(zql, list_to_atom(HelpFunctionName), [ ]).
 
 
 
@@ -131,11 +131,11 @@ p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs1 = local().                                        -"),
 p("-                                                                   -"),
-p("- ConnectionArgs2 = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
+p("- ConnectionArgs2 = [{driver,zql_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-local() -> ConnectionArgs = connections:local_cassandra_connection(),
+local() -> ConnectionArgs = zql_connections:local_cassandra_connection(),
            ConnectionArgs.
                 
 test_conection_help() -> 
@@ -164,7 +164,7 @@ test_connection( ConnectionArgs ) -> try ( test_conn( ConnectionArgs ) ) of
                                      end.
 
 
-test_conn( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
+test_conn( ConnectionArgs ) -> Driver = get_zql_driver_name( ConnectionArgs ),
                                apply( Driver , connect, [ ConnectionArgs ]),
                                ok.
 
@@ -173,7 +173,7 @@ create_oo_session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
                                        Session.
 
 
-whichdb( ConnectionArgs ) -> Driver = get_db_driver_name( ConnectionArgs ),
+whichdb( ConnectionArgs ) -> Driver = get_zql_driver_name( ConnectionArgs ),
                              Name = apply( Driver , name, [ ]),
                              Name.
 
@@ -274,10 +274,10 @@ match(_Value, equals, _ExpectedValue) -> false.
 
 
 
-get_db_driver_name_help() -> 
+get_zql_driver_name_help() -> 
 p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
-p("-               get_db_driver_name(ConnectionArgs)                  -"),
+p("-               get_zql_driver_name(ConnectionArgs)                  -"),
 p("-                                                                   -"),
 p("-              gets the name of the database driver                 -"),
 p("-                                                                   -"),
@@ -287,11 +287,11 @@ p("                                                                    -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- get_db_driver_name( ConnectionArgs ).                             -"),
+p("- get_zql_driver_name( ConnectionArgs ).                             -"),
 p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
-get_db_driver_name( ConnectionArgs ) -> Driver = proplists:get_value( driver, ConnectionArgs ),
+get_zql_driver_name( ConnectionArgs ) -> Driver = proplists:get_value( driver, ConnectionArgs ),
                                         Driver.
 
 
@@ -344,7 +344,7 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property_names( ConnectionArgs, Key) -> Driver = get_db_driver_name(ConnectionArgs),
+get_property_names( ConnectionArgs, Key) -> Driver = get_zql_driver_name(ConnectionArgs),
                                             PropertyNames = apply(Driver, get_property_names, [ConnectionArgs, Key]),
                                             PropertyNames.
 
@@ -367,7 +367,7 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property( ConnectionArgs, Key, PropertyName) -> Driver = get_db_driver_name( ConnectionArgs ),
+get_property( ConnectionArgs, Key, PropertyName) -> Driver = get_zql_driver_name( ConnectionArgs ),
                                                     Value = apply(Driver, get_property, [ConnectionArgs, Key, PropertyName]),
                                                     Value.
 
@@ -412,12 +412,12 @@ p("- ConnectionArgs = local( ).                                        -"),
 p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
-create_record( Conn ) -> Driver = get_db_driver_name( Conn ),
+create_record( Conn ) -> Driver = get_zql_driver_name( Conn ),
                          Key = apply( Driver, create_record, [ Conn ] ),
                          Key.
 
 create_record( Conn , Key ) -> 
-                               Driver = get_db_driver_name( Conn ),
+                               Driver = get_zql_driver_name( Conn ),
 
                                Key2 = apply( Driver, create_record, [ Conn , Key ] ),
 
@@ -446,7 +446,7 @@ p("---------------------------------------------------------------------").
 
 add_property( Connection, Key, PropertyName, Value) -> 
 
-                          Driver = get_db_driver_name(Connection),
+                          Driver = get_zql_driver_name(Connection),
                           apply(Driver, add_property, [Connection, Key, PropertyName, Value]),
                           ok.
 
@@ -473,7 +473,7 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-has_property(C,Record,PropertyName) -> Driver = get_db_driver_name(C),
+has_property(C,Record,PropertyName) -> Driver = get_zql_driver_name(C),
                                        Ret = apply(Driver, has_property, [C, Record, PropertyName]),
                                        Ret.
 
@@ -527,7 +527,7 @@ p("---------------------------------------------------------------------").
 
 delete_property_value(C, Key, PropertyName, Value) ->  
 
-                             Driver = get_db_driver_name(C),
+                             Driver = get_zql_driver_name(C),
                              apply(Driver, delete_property, [C, Key, PropertyName, Value]),
                              ok.
 
@@ -554,7 +554,7 @@ p("---------------------------------------------------------------------").
 
 delete_property(C, Key, PropertyName) ->
 
-                             Driver = get_db_driver_name(C),
+                             Driver = get_zql_driver_name(C),
                              apply(Driver, delete_property, [C, Key, PropertyName]),
                              ok.
 
@@ -578,7 +578,7 @@ q('- >> true                                                           -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-exists( Connection, Key ) -> Driver = get_db_driver_name( Connection ),
+exists( Connection, Key ) -> Driver = get_zql_driver_name( Connection ),
                              Exists = apply( Driver, exists, [ Connection, Key ] ),
                              Exists.
 
@@ -606,7 +606,7 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-delete(Connection,Key) -> Driver = get_db_driver_name(Connection),
+delete(Connection,Key) -> Driver = get_zql_driver_name(Connection),
                           apply(Driver, delete, [Connection, Key]),
                           ok.
 
@@ -631,7 +631,7 @@ p("- ConnectionArgs = local( ).                                        -"),
 p("- ls( ConnectionArgs ).                                             -"),
 p("---------------------------------------------------------------------").
 
-ls(Connection) -> Driver = get_db_driver_name(Connection),
+ls(Connection) -> Driver = get_zql_driver_name(Connection),
                   Ls = apply(Driver, ls, [Connection]),
                   Ls.
 
@@ -658,7 +658,7 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-count(Connection) ->  Driver = get_db_driver_name(Connection),
+count(Connection) ->  Driver = get_zql_driver_name(Connection),
                       Count = apply(Driver, count, [Connection]),
                       Count.
 
@@ -683,7 +683,7 @@ p("- delete_all( ConnectionArgs, yes_im_sure ).                        -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-delete_all( Connection , yes_im_sure ) -> Driver = get_db_driver_name(Connection),
+delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connection),
                                           apply( Driver , delete_all , [ Connection ,  yes_im_sure ] ),
                                           ok.
 

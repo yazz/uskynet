@@ -1,7 +1,7 @@
--module(zserver).
+-module(zql_server).
 -compile(export_all).
 
--import(zprint,[println/1,p/1,q/1,print_number/1]).
+-include_lib("zql_all_imports.hrl").
 
 start() -> Location = global:whereis_name(server),
            case Location of
@@ -27,7 +27,7 @@ loop() ->   scan(),
             timer:sleep(500),
             loop().
 
-scan() ->   DB=user_default:getdb(),
+scan() ->   %DB=user_default:getdb(),
 
             user_default:s("count","0"),
             user_default:s("countdone","false"),
@@ -57,7 +57,7 @@ check_number(RecordId) ->
                            Type = R:get("type"),
                            case (Type) of
                                 <<"number">> -> user_default:print(RecordId),
-                                                DB=user_default:getdb(),
+                           %                     DB=user_default:getdb(),
                                                 C=user_default:g("count"),
                                                 Value = zutils:to_integer(C),
                                                 C2 = Value + 1,

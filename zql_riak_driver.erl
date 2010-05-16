@@ -1,19 +1,10 @@
--module(db_riak_driver).
+-module(zql_riak_driver).
 -compile(export_all).
--import(zutils,[uuid/0]).
-
+-include_lib("zql_all_imports.hrl").
 
 connect(Connection) -> Hostname = proplists:get_value(hostname, Connection),
                        {ok, C} = riak:client_connect(Hostname),
                        C.
-
-
-
-
-
-
-to_binary(Value) when is_binary(Value) -> Value;
-to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 

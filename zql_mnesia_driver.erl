@@ -1,18 +1,11 @@
--module(db_mnesia_driver).
+-module(zql_mnesia_driver).
 -compile(export_all).
--import(zutils,[uuid/0]).
-
-
+-include_lib("zql_all_imports.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
 -record(data, {key, value}).
 
 name( ) -> "MNesia".
-
-
-
-to_binary(Value) when is_binary(Value) -> Value;
-to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 

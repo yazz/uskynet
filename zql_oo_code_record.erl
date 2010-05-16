@@ -1,6 +1,6 @@
--module(codeoo,[Conn, Key]).
+-module(zql_oo_code_record,[Conn, Key]).
 -compile(export_all).
--import(zprint,[println/1,p/1,q/1,print_number/1]).
+-include_lib("zql_all_imports.hrl").
 
 help( ) -> 
 p("help for code").

@@ -1,4 +1,4 @@
--module(connections).
+-module(zql_connections).
 -compile(export_all).
 -include_lib("zql_all_imports.hrl").
 
