@@ -1,6 +1,5 @@
 -module(zql_server).
 -compile(export_all).
-
 -include_lib("zql_all_imports.hrl").
 
 start() -> Location = global:whereis_name(server),

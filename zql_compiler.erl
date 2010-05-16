@@ -7,6 +7,9 @@ compile_all() -> compile(zql_utils),
                  compile(zql_connections),
                  compile(zql),
 
+                 compile(zql_context_helper),
+                 compile(zql_oo_helper),
+
                  compile(zql_oo_session),
                  compile(zql_oo_record),
                  compile(zql_oo_code_record),

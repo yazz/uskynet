@@ -5,7 +5,7 @@
 help() -> 
 p("-----------------------------------------------------------------------------"),
 p("-                                                                           -"),
-p("-                                MODULE zqloo                               -"),
+p("-                                MODULE zql_oo_session                      -"),
 p("-                                                                           -"),
 p("-                 OO Erlang interface to the ZQL system                     -"),
 p("-                                                                           -"),
@@ -47,18 +47,31 @@ count( ) -> zql:count(Conn).
 
 connection() -> Conn.
 
-get_record(Key) -> recordoo:new(Conn,Key).
+get_record(Key) -> zql_oo_record:new(Conn,Key).
 
 create_record( ) -> Key = zql:create_record( Conn ),
-                    Record = recordoo:new( Conn, Key ),
+                    Record = zql_oo_record:new( Conn, Key ),
                     Record.
 
-create_record( Key ) -> 
-                        RecordId = zql:create_record( Conn , Key ),
-                        Record = recordoo:new( Conn, RecordId ),
+create_record( Key ) -> RecordId = zql:create_record( Conn , Key ),
+                        Record = zql_oo_record:new( Conn, RecordId ),
                         Record.
 
 
 
 
 exists(Key) -> zql:exists(Conn,Key).
+
+last() ->      LastUsed = get_record("last_used"),
+
+               Id = LastUsed:get("last"),
+               Record = get_record( Id ),
+
+               Record.
+
+last2() ->     LastUsed = get_record("last_used"),
+
+               Id = LastUsed:get("last2"),
+               Record = get_record( Id ),
+
+               Record.

@@ -5,14 +5,6 @@
 
 name() -> "Cassandra database".
 
-test() -> Conn = local_cassandra_connection_args(),
-          zql:test_with_connection( Conn ).
-
-lc() -> local_cassandra_connection_args().
-local_cassandra_connection_args() -> CassandraConnection = [{driver,db_cassandra_driver},{hostname,'127.0.0.1'}],
-                                     CassandraConnection.
-
-
 connect( ConnectionArgs ) -> Hostname = proplists:get_value( hostname, ConnectionArgs ),
                              { ok, Conn } = thrift_client:start_link( Hostname , 9160 , cassandra_thrift ),
                              Conn.
@@ -145,7 +137,6 @@ exists(Connection, Key) ->  BinaryKey = to_binary(Key),
 
 
 
-delete(Key) -> delete(lc(),Key).
 
 delete(Conn,Key) -> C = connect( Conn ),
 
@@ -184,7 +175,7 @@ delete_all( Conn , yes_im_sure ) ->  Keys = ls( Conn ),
 
 
 
-set(K,V) -> set(lc(),K,V).
+
 set(ConnArgs,K,V) -> 
                C=connect(ConnArgs),  
                thrift_client:call( C,
@@ -197,7 +188,6 @@ set(ConnArgs,K,V) ->
                      1
                      ] ).
 
-get(K) -> get( lc(), K).
 
 get(C,K) -> get_property(C,K,"value").
 
@@ -205,7 +195,6 @@ get(C,K) -> get_property(C,K,"value").
 
 
 
-set_property( Key, PropertyName, Value ) -> set_property( lc(), Key, PropertyName, Value ).
 
 set_property( ConnArgs, K, P, V ) -> 
                C=connect(ConnArgs),  
@@ -253,7 +242,6 @@ from_return_values( [{columnOrSuperColumn, {column,PropName, _Value, _Count},und
 
 
 
-get_property_names(K) -> get_property_names(lc(),K).
 
 get_property_names(Conn,K) -> 
             C=connect(Conn), 
@@ -290,7 +278,6 @@ v() -> {ok, C} = thrift_client:start_link("127.0.0.1",9160, cassandra_thrift),
         thrift_client:call(C, 'describe_version',[]).
 
 
-ls() -> ls(lc()).
 ls(Conn) -> C = connect( Conn),
 
             S = #sliceRange{start="",finish="",reversed=false,count=100},

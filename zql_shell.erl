@@ -21,9 +21,10 @@ help(Args) -> Num = length(Args),
               end.
 
 
+continue() -> start().
 
-
-sh() -> p(""),
+start() -> 
+        p(""),
      	p("---------------------------------------------------------------------------------------------"),
         InputWithReturn = io:get_line(">"),
 	Input = remove_newline(InputWithReturn),
@@ -34,14 +35,14 @@ sh() -> p(""),
 	CommandAtom = list_to_atom(Command),
 
         case CommandAtom of
-             it -> it(),sh();
-             get -> read(Args),sh();
-             help -> help(Args),sh();
+             it -> it(), continue();
+             get -> read(Args), continue();
+             help -> help(Args), continue();
 
 	     q -> finished;
              quit -> finished;
 
-             _UnknownCommand -> process(Input),sh()
+             _UnknownCommand -> process(Input), continue()
         end.
 
 
@@ -75,7 +76,7 @@ read(Args) -> p("get called with arg count of:"),
               case Num of 
                    1 -> Key = nth(1,Args),
                         SKey = to_string(Key),
-                        V = g(SKey),
+                        V = zql:get( db_conn_args(), SKey),
                         p(V);
                    X -> print_number(X)
               end.
@@ -99,7 +100,7 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 process( InputText ) -> p("Searching for '" ++ InputText ++ "'"),
-	 	     	V = g( InputText ),
+	 	     	V =  zql:get( db_conn_args(), InputText ),
 	 	     	p(V).
 
 
@@ -115,7 +116,7 @@ hello( ) -> p("Hello. System is available").
 oo_db( ) -> DB = zql:create_oo_session( db_conn_args() ),
             DB.
 
-db_conn_args () -> db_cassandra_driver:lc().
+db_conn_args () -> zql_connections:local_cassandra_connection().
 
 whichdb( ) -> zql:whichdb( db_conn_args() ).
 
@@ -168,16 +169,12 @@ last( Record )      -> Oodb = oo_db(),
                        RecentlyUsed:set( "last", Record:id() ).
 
 last() ->      Oodb = oo_db(),
-               LastUsed = Oodb:get_record("last_used"),
-               Id = LastUsed:get("last"),
-               Record = Oodb:get_record(Id),
-               Record.
+               LastUsed = Oodb:last(),
+               LastUsed.
 
 last2() ->     Oodb = oo_db(),
-               LastUsed = Oodb:get_record("last_used"),
-               Id = LastUsed:get("last2"),
-               Record = Oodb:get_record(Id),
-               Record.
+               LastUsed2 = Oodb:last2(),
+               LastUsed2.
 
 new( ) -> DB = oo_db(),
           Record = DB:create_record( ),

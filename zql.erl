@@ -169,8 +169,6 @@ test_conn( ConnectionArgs ) -> Driver = get_zql_driver_name( ConnectionArgs ),
                                ok.
 
 
-create_oo_session( ConnectionArgs ) -> Session = zqloo:new( ConnectionArgs ),
-                                       Session.
 
 
 whichdb( ConnectionArgs ) -> Driver = get_zql_driver_name( ConnectionArgs ),
@@ -688,6 +686,8 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connectio
                                           ok.
 
 
+
+create_oo_session( ConnectionArgs ) -> zql_oo_helper:create_oo_session( ConnectionArgs ).
 
 
 
