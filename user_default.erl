@@ -37,3 +37,6 @@ shell() -> zql_compiler:compile_all(),
            zql_shell:start().
 
 test() -> zql:test().
+
+oo() -> Session = zql:create_oo_session( zql_connections:local_cassandra_connection() ),
+        Session.
