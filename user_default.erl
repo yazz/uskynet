@@ -33,6 +33,7 @@ compile_all() -> zql_compiler:compile_all().
 
 start() -> db_mnesia_driver:start().
 
+sh() -> shell().
 shell() -> zql_compiler:compile_all(),
            zql_shell:start().
 

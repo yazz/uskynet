@@ -85,16 +85,17 @@ test() -> ConnectionArgs = local(),
 
 test_with_connection(C) ->
 
-                println("Number of records in datastore:"),
+                p("Number of records in datastore:"),
                 Count = count(C),
                 print_number(Count),
 
                 delete_all(C,yes_im_sure),                
 
                 set(C, "boy", "Is here"),
-                println("\nSaved 'boy' as 'is here'"),
+                p("Saved 'boy' as 'is here'"),
+
                 Value = get(C, "boy"),
-                println("got value of boy as : "),               
+                p("got value of boy as : "),
                 println(Value),
                 println("Check 'boy' exists :"),
                 Exists = exists(C, "boy"),
@@ -156,9 +157,10 @@ p("- test_connection( bad_data ).                                      -"),
 p("- >> {error, bad_connection}                                        _"),
 p("---------------------------------------------------------------------").
 
-test_connection( ConnectionArgs ) -> try ( test_conn( ConnectionArgs ) ) of
-                                     _ -> {ok, connection_fine}
-
+test_connection( ConnectionArgs ) -> try ( 
+                                                test_conn( ConnectionArgs ) 
+                                          ) of
+                                                _ -> {ok, connection_fine}
                                      catch
                                         _Exception:_Reason -> {error, bad_connection}
                                      end.
@@ -688,8 +690,8 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connectio
 
 
 create_oo_session( ConnectionArgs ) -> zql_oo_helper:create_oo_session( ConnectionArgs ).
-
-
+list_connections() -> zql_connections:list_connections().
+get_connection(Conn) -> apply(zql_connections,Conn,[]).
 
 
 

@@ -2,7 +2,11 @@
 -compile(export_all).
 -include_lib("zql_all_imports.hrl").
 
-
+list_connections() -> [
+                        local_riak_connection,
+                        local_mnesia_connection,
+                        local_cassandra_connection
+                      ].
 
 
 local_riak_connection() -> 

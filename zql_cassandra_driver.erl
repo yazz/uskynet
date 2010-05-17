@@ -24,8 +24,7 @@ create_record(ConnectionArgs) -> UUID = uuid(),
 
 
 
-create_record( Conn, Id ) -> 
-                             Key = to_binary(Id),
+create_record( Conn, Id ) -> Key = to_binary(Id),
                              set_property( Conn , Key , "value", "" ),
                              Key.
 

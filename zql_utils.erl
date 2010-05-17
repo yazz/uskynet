@@ -43,6 +43,7 @@ get_timestamp_microseconds() ->
     {Mega,Sec,Micro} = erlang:now(),
     (Mega*1000000+Sec)*1000000+Micro.
 
+to_string(A) when is_atom(A) -> atom_to_list(A);
 to_string(I) when is_integer(I) -> lists:flatten(io_lib:format("~p", [I]));
 to_string(S) when is_list(S) -> S;
 to_string(S) when is_binary(S) -> binary_to_list(S).
@@ -68,5 +69,7 @@ get_all_lines(Device, Accum) ->
 
 
 
+for_each_item(List, Function) ->
 
+        lists:foreach( Function, List).
 

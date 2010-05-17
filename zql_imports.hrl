@@ -8,7 +8,8 @@
                 q/1,
                 print_number/1,
                 to_binary/1,
-                get_timestamp_microseconds/0
+                get_timestamp_microseconds/0,
+                for_each_item/2
 		]).
 
 -import(lists,[nth/2]).

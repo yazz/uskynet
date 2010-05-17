@@ -5,6 +5,7 @@
 help() -> 
 
 p("help - this command"),
+p("connections - lists the possible connections"),
 p("it - the last thing created"),
 p("quit - exits to the command line").
 
@@ -39,15 +40,20 @@ start() ->
              get -> read(Args), continue();
              help -> help(Args), continue();
 
+             connections -> connections(), continue();
+
 	     q -> finished;
              quit -> finished;
 
              _UnknownCommand -> process(Input), continue()
         end.
 
+connections() -> Conns = zql:list_connections(),
+                 for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
 
-
-
+test_connection(Conn) -> p("Connection: "),
+                         p(Conn).
+                         %apply(zql,test_connection,[Conn]).
 
 it_help() ->
 p("---------------------------------------------------------------------"),

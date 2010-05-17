@@ -5,10 +5,18 @@
 
 -record(data, {key, value}).
 
-name( ) -> "MNesia".
+name( ) -> "Mnesia".
 
 
 
+connect(_Connection) -> start(),
+                        ok.
+
+
+
+start() -> mnesia:create_schema([node()]),
+           mnesia:start(),
+           ok.
 
 
 get_property_names( ConnectionArgs, Key ) -> 
@@ -244,10 +252,6 @@ delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
 
 
 
-start() ->
-               mnesia:create_schema([node()]),
-               mnesia:start(),
-               ok.
 
 do() -> mnesia:create_table(data, [{disc_copies, [node()]}, {attributes, record_info(fields, data)}]).
 
