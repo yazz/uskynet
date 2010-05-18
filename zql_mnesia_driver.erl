@@ -9,24 +9,31 @@ name( ) -> "Mnesia".
 
 
 
-connect(_Connection) -> start(),
-                        ok.
+connect(_Connection) -> ok.
+
+
+setup() -> mnesia:create_table(
+                data, 
+                [
+                        {disc_copies, [node()]}, 
+                        {attributes, record_info(fields, data)}
+                ]
+          ).
 
 
 
-start() -> mnesia:create_schema([node()]),
-           mnesia:start(),
-           ok.
 
+get_property_names( _ConnectionArgs, Key ) -> 
 
-get_property_names( ConnectionArgs, Key ) -> 
+                        ReturnValue = case get_val( Key ) of
+                                [ok, Data] ->  NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
+                                               NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
+                                               UniqueList = sets:to_list(NoDuplicatesSet),
+                                               UniqueList;
 
-                                 Data = get( ConnectionArgs, Key ),
-                                 NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
-                                 NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
-                                 UniqueList = sets:to_list(NoDuplicatesSet),
-                                 UniqueList.
-
+                                _          ->  not_found
+                        end,
+                        ReturnValue.
 
 
 get_property( ConnectionArgs, Key, PropertyName) -> 
@@ -40,23 +47,12 @@ get_property( ConnectionArgs, Key, PropertyName) ->
 
 
 
-has_property( ConnectionArgs, Key, PropertyName) -> 
-
-                                               PropertyNames = get_property_names( ConnectionArgs, Key),
-                                               ContainsKey = lists:member( PropertyName, PropertyNames),
-                                               ContainsKey.
 
 
 
 
 
-get( _ConnectionArgs, Key ) -> 
-                              BinaryKey = to_binary( Key ),
-                              
-                              Value  = get_val( BinaryKey ),
-
-
-                              Value.
+get( _ConnectionArgs, Key ) -> get_property( x, Key, value).
 
 
 
@@ -65,11 +61,7 @@ get( _ConnectionArgs, Key ) ->
 
 
 
-set( _ConnectionArgs, Key, Value) -> 
-                                    BinaryKey = to_binary(Key),
-                                    
-                                    put_val( BinaryKey, Value ),
-                                    ok.
+set( _ConnectionArgs, Key, Value) -> set_property( x, Key, value, Value ).
 
 
 
@@ -79,126 +71,31 @@ set( _ConnectionArgs, Key, Value) ->
 
 
 
-create_record(ConnectionArgs) -> UUID = uuid(),
-                                 create_record(ConnectionArgs, UUID).
-
-
-create_record(_ConnectionArgs, Id) -> 
-
-                                 Key = list_to_binary(Id),
-                                 
-                                 put_val( Key , []),
-                                 Key.
 
 
 
 
 
+set_property(_C, Key, PropertyName, Value) -> BinaryKey = to_binary(Key),
 
-
-
-add_property(_C, Key, PropertyName, Value) ->                                                    
-                                                BinaryKey = to_binary(Key),
-
-                                                CurrentValues  = get_val( BinaryKey ),
+                                              [ok,CurrentValues]  = get_val( BinaryKey ),
                                                 
-                                                UpdatedValue = [{PropertyName,Value} | CurrentValues],
+                                              UpdatedValue = [{PropertyName,Value} | CurrentValues],
 
-
-                                                put_val( BinaryKey, UpdatedValue).
-
-
+                                              put_val( BinaryKey, UpdatedValue).
 
 
 
 
 
 
-
-
-update_property(Connection, Key,Property,Value) -> 
-                            RiakClient = connect,
-                            Bucket = proplists:get_value(bucket, Connection),
-
-                            { ok, Item } = RiakClient:get(
-                                 Bucket,
-                                 Key,
-                                 1),
-
-                            CurrentValues = riak_object:get_value( Item ),
-                            DeletedPropertyList = delete_property_list( Property, CurrentValues),
-                            UpdatedValue = [{Property,Value} | DeletedPropertyList],
-
-                            UpdatedItem = riak_object:update_value(
-                                                 Item,
-                                                 UpdatedValue),
-
-                            RiakClient:put( UpdatedItem, 1).                                       
-
-
-
-
-
-
-delete_property(Connection, Key, Property) -> RiakClient = connect,
-                                       Bucket = proplists:get_value(bucket, Connection),
-                                       { ok, Item } = RiakClient:get(
-                                           Bucket,
-                                           Key,
-                                           1),
-
-                                       CurrentValues = riak_object:get_value( Item ),
-                                       UpdatedValue = delete_property_list( Property, CurrentValues ),
-
-                                       UpdatedItem = riak_object:update_value(
-                                           Item,
-                                           UpdatedValue),
-
-                                       RiakClient:put( UpdatedItem, 1),
-                                       ok.
-
-
-
-
-
-
-
-
-delete_property(ConnectionArgs, Key,Property, Value) -> 
-
-                                RiakClient = connect,
-                                Bucket = proplists:get_value(bucket, ConnectionArgs),
-
-                                { ok, Item } = RiakClient:get(
-                                     Bucket,
-                                     Key,
-                                1),
-                                CurrentValues = riak_object:get_value( Item ),
-                                UpdatedValue = lists:delete( { Property, Value },  CurrentValues ),
-
-                                UpdatedItem = riak_object:update_value(
-                                    Item,
-                                    UpdatedValue),
-
-                                RiakClient:put( UpdatedItem, 1).
-                                       
-
-delete_property_list( _Col, [] ) -> [];
-delete_property_list( Col, [{Col,_AnyValue} | T ]) -> delete_property_list( Col, T);
-delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
-
-
-
-
-
-
-exists(_Connection, Key) ->  
-                            BinaryKey = to_binary(Key),
+exists(_Connection, Key) -> BinaryKey = to_binary(Key),
 
                             try
                                 get_val( BinaryKey )
                             of
-                                _ -> true
+                                [ok, _] -> true;
+                                [not_found, _] -> false
                             catch
                                 error:_Reason -> false
 		            end.
@@ -210,8 +107,6 @@ exists(_Connection, Key) ->
 
 delete(_Connection, Key) ->      
                                 BinaryKey = to_binary(Key),
-                                
-
                                 delete_key( BinaryKey ),
  		       	    	ok.
 
@@ -220,9 +115,8 @@ delete(_Connection, Key) ->
 
 
 
-ls(_Connection) -> 
-                  Keys = list_keys( ),
-                  Keys.
+ls(_Connection) -> Keys = list_keys( ),
+                   Keys.
 
 
 
@@ -253,21 +147,33 @@ delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
 
 
 
-do() -> mnesia:create_table(data, [{disc_copies, [node()]}, {attributes, record_info(fields, data)}]).
 
-put_val(Key, Val) -> Record = #data{key = Key, value = Val},
-	    	    F = fun() ->
+put_val(Key, Val) ->    BKey = to_binary(Key),
+                        Record = #data{key = BKey, value = Val},
+
+	    	        F = fun() ->
 				mnesia:write(Record)
 				end,
-		    mnesia:transaction(F).
+		        mnesia:transaction(F).
 
-get_val(Key) ->
-		F = fun() ->
-				mnesia:read({data, Key})
+get_val(Key) -> BKey = to_binary(Key),
+                Result = try
+
+		    F = fun() ->
+				mnesia:read({data, BKey})
 		  		end,
-		{atomic, Data} = mnesia:transaction(F),
-		[{data,Key,Value}] = Data,
-                Value.
+		    {atomic, Data} = mnesia:transaction(F),
+		    [{data,BKey,Value}] = Data,
+                    Value
+
+                of
+                     Val -> [ok,Val]
+                catch
+                     _:_Reason -> [ not_found , value ]
+		end,
+                Result.
+
+
 
 
 
@@ -293,22 +199,23 @@ select_all() ->
     {atomic,More} = Res,
     More.
 
-getkeys([]) -> [];
-getkeys([{data,Key,_Value}|Extra]) -> [Key|getkeys(Extra)].
+getkeys( [] ) -> [];
+getkeys( [{data,Key,_Value}|Extra] ) -> [ Key | getkeys(Extra) ].
 
 
-list_keys() ->
-                All = select_all(),
+list_keys() ->  All = select_all(),
                 Keys = getkeys(All),
                 Keys.
 
 
 delete_key(Key) ->
-Delete=#data{key = Key, _ = '_'},
-Fun = fun() ->
+        Delete=#data{key = Key, _ = '_'},
+
+        Fun = fun() ->
               List = mnesia:match_object(Delete),
+
               lists:foreach(fun(X) ->
                                     mnesia:delete_object(X)
                             end, List)
-      end,
-      mnesia:transaction(Fun).
+        end,
+        mnesia:transaction(Fun).

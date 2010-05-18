@@ -27,6 +27,13 @@ help(Args) -> Num = length(Args),
 
 continue() -> start().
 
+
+start_mnesia() -> mnesia:create_schema([node()]),
+                  mnesia:start(),
+                  ok.
+
+init() -> start_mnesia().
+
 start() -> 
         p(""),
      	p("---------------------------------------------------------------------------------------------"),
@@ -54,7 +61,12 @@ start() ->
              _UnknownCommand -> process(Input), continue()
         end.
 
-start_mnesia() -> mnesia:start().
+
+
+
+
+
+
 
 connections() -> Conns = zql:list_connections(),
                  for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
@@ -68,6 +80,10 @@ use_connection(Args) -> ConnectionName = nth(1,Args),
 
 test_connection(Conn) -> p(Conn).
                          %apply(zql,test_connection,[Conn]).
+
+
+
+
 
 it_help() ->
 p("---------------------------------------------------------------------"),

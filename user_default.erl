@@ -10,7 +10,6 @@ p("-               default commands from the erlang shell                      -
 p("-                                                                           -"),
 p("-----------------------------------------------------------------------------"),
 p("                                                                             "),
-p(" start( )                                  starts mnesia database            "),
 p(" shell( )                                  starts a ZQL shell                "),
 p(" test ()                                   run the self tests for zql        "),
 p(" test_connection( ConnectionArgs )         tests a connection                "),
@@ -31,13 +30,21 @@ c() -> compile_all().
 compile_all() -> zql_compiler:compile_all().
 
 
-start() -> db_mnesia_driver:start().
 
 sh() -> shell().
 shell() -> zql_compiler:compile_all(),
+           p(" start( )                                  starts mnesia database            "),
+           zql_shell:init(),
            zql_shell:start().
 
 test() -> zql:test().
 
 oo() -> Session = zql:create_oo_session( zql_connections:local_cassandra_connection() ),
         Session.
+
+mnesia() -> zql:get_connection(local_mnesia_connection).
+
+init() -> zql_shell:init().
+
+gpn(Key)->zql:get_property_names(mnesia(),Key).
+set(Key,PropName,Value)->zql:set_property(mnesia(),Key,PropName,Value).

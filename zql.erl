@@ -16,27 +16,24 @@ p("test ()                                          run the self tests for zql  
 p("local ()                                         returns a local connection  "),
 p("test_connection( ConnectionArgs )                tests a connection          "),
 p("create_oo_session( ConnectionArgs )              returns a zqloo OO instance "),
-p("whichdb( COnnectionArgs )                        returns the DB name         "),
+p("whichdb( ConnectionArgs )                        returns the DB name         "),
 p("                                                                             "),
-p("ls (ConnectionArgs)                                                          "),
+p("ls (ConnectionArgs)                              lists all keys              "),
 p("set (ConnectionArgs, Key, Value)                 set a value                 "),
-p("put (ConnectionArgs, Key, Value)                 set a value                 "),
 p("get (ConnectionArgs, Key)                        get the value of Key        "),
 p("exists (ConnectionArgs, Key)                     does this record/Key exist  "),
 p("                                                                             "),
 p("create_record (ConnectionArgs )                  create a record             "),
 p("delete_record (ConnectionArgs )                  delete a record             "),
 p("                                                                             "),
+p("get_property_names (C, Key)                      gets the property names     "),
 p("has_property (ConnectionArgs, Key, PropertyName) check for a property        "),
 p("set_property (C, Key, PropertyName, Value)       set a property              "),
+p("get_property (C, Key, PropertyName)              get a property              "),
 p("delete_property (C, Key, Property)               delete a property           "),
-p("add_property (C, Key, PropertyName, Value)       add to a property list      "),  
-p("delete_property_name_value (C, Key, P, Value)    delete a property value     "),
 p("                                                                             "),
-p("print (ConnectionArgs, ID)                       print record with key ID    "),
+p("print (ConnectionArgs, Key)                      print record                "),
 p("print_all (ConnectionArgs)                       print all records           "),
-p("connect (ConnectionArgs)                         connect to the database     "),
-p("get (ConnectionArgs, Key)                        get the value of Key        "),
 p("                                                                             "),
 p(" Example:                                                                    "),
 q(' C = [ {driver,zql_cassandra_driver}, {hostname,"127.0.0.1"}].               '),
@@ -93,6 +90,7 @@ test_with_connection(C) ->
 
                 set(C, "boy", "Is here"),
                 p("Saved 'boy' as 'is here'"),
+pfdsfds:fdsfds(),
 
                 Value = get(C, "boy"),
                 p("got value of boy as : "),
@@ -292,7 +290,7 @@ p("                                                                    -"),
 p("---------------------------------------------------------------------").
 
 get_zql_driver_name( ConnectionArgs ) -> Driver = proplists:get_value( driver, ConnectionArgs ),
-                                        Driver.
+                                         Driver.
 
 
 
@@ -324,8 +322,8 @@ q('- > zql:get( ConnectionArgs, "UndefinedThing" ).                    -'),
 q('- [not_found, item]                                                 -'),
 p("---------------------------------------------------------------------").
 
-get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, "value" ),
-                              Value.
+get( ConnectionArgs, Key ) -> Result = get_property( ConnectionArgs, Key, value ),
+                              Result.
 
 
 
@@ -390,7 +388,6 @@ p("---------------------------------------------------------------------").
 
 set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, "value", Value ).
 
-put( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, "value", Value ). 
 
 
 
@@ -412,16 +409,12 @@ p("- ConnectionArgs = local( ).                                        -"),
 p("- print_all( ConnectionArgs ).                                      -"),
 p("---------------------------------------------------------------------").
 
-create_record( Conn ) -> Driver = get_zql_driver_name( Conn ),
-                         Key = apply( Driver, create_record, [ Conn ] ),
-                         Key.
+create_record( C ) -> UUID = uuid(),
+                      create_record( C, UUID).
 
-create_record( Conn , Key ) -> 
-                               Driver = get_zql_driver_name( Conn ),
 
-                               Key2 = apply( Driver, create_record, [ Conn , Key ] ),
-
-                               Key2.
+create_record( C, Id ) -> set( C, Id , ""),
+                          Id.
 
 
 
@@ -430,25 +423,6 @@ create_record( Conn , Key ) ->
 
 
 
-add_property_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-        add_property(ConnArgs, Key, PropertyName, Value)           -"),
-p("-                                                                   -"),
-p("-   This adds a named property to a record identified by Key        -"),
-p("-                                                                   -"),
-p("- Example:                                                          -"),
-p("-                                                                   -"),
-p("- ConnectionArgs = local( ).                                        -"),
-q('- add_property( ConnectionArgs, "Peter", type, "Person" ).          -'),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-add_property( Connection, Key, PropertyName, Value) -> 
-
-                          Driver = get_zql_driver_name(Connection),
-                          apply(Driver, add_property, [Connection, Key, PropertyName, Value]),
-                          ok.
 
 
 
@@ -473,9 +447,12 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-has_property(C,Record,PropertyName) -> Driver = get_zql_driver_name(C),
-                                       Ret = apply(Driver, has_property, [C, Record, PropertyName]),
-                                       Ret.
+has_property( ConnectionArgs, Key, PropertyName) -> 
+
+                                               PropertyNames = get_property_names( ConnectionArgs, Key),
+                                               ContainsKey = lists:member( PropertyName, PropertyNames),
+                                               ContainsKey.
+
 
 
 
@@ -498,13 +475,17 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 set_property( ConnArgs, Key, PropertyName, Value ) -> 
+
                                              DoesRecordExist = exists( ConnArgs, Key),
                                              case DoesRecordExist of
                                                 false -> create_record( ConnArgs, Key );
                                                 true -> do_nothing
                                              end,
 
-                                             add_property( ConnArgs, Key, PropertyName, Value),
+                                             Driver = get_zql_driver_name(ConnArgs),
+
+                                             apply(Driver, set_property, [ConnArgs, Key, PropertyName, Value]),
+
                                              ok.
 
 
@@ -692,6 +673,7 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connectio
 create_oo_session( ConnectionArgs ) -> zql_oo_helper:create_oo_session( ConnectionArgs ).
 list_connections() -> zql_connections:list_connections().
 get_connection(Conn) -> apply(zql_connections,Conn,[]).
+
 
 
 
