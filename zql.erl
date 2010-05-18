@@ -324,7 +324,7 @@ q('- > zql:get( ConnectionArgs, "UndefinedThing" ).                    -'),
 q('- [not_found, item]                                                 -'),
 p("---------------------------------------------------------------------").
 
-get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, <<"value">> ),
+get( ConnectionArgs, Key ) -> Value = get_property( ConnectionArgs, Key, "value" ),
                               Value.
 
 

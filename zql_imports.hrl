@@ -9,7 +9,9 @@
                 print_number/1,
                 to_binary/1,
                 get_timestamp_microseconds/0,
-                for_each_item/2
+                for_each_item/2,
+		is_string/1,
+		to_atom/1
 		]).
 
 -import(lists,[nth/2]).

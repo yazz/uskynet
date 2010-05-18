@@ -43,6 +43,13 @@ get_timestamp_microseconds() ->
     {Mega,Sec,Micro} = erlang:now(),
     (Mega*1000000+Sec)*1000000+Micro.
 
+
+is_string(S) -> is_list(S).
+
+to_atom(A) when is_atom(A) -> A;
+to_atom(S) when is_list(S) -> list_to_atom(S);
+to_atom(B) when is_binary(B) -> to_atom(to_string(B)).
+
 to_string(A) when is_atom(A) -> atom_to_list(A);
 to_string(I) when is_integer(I) -> lists:flatten(io_lib:format("~p", [I]));
 to_string(S) when is_list(S) -> S;

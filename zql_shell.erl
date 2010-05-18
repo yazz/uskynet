@@ -6,6 +6,7 @@ help() ->
 
 p("help - this command"),
 p("connections - lists the possible connections"),
+p("use connection name"),
 p("it - the last thing created"),
 p("quit - exits to the command line").
 
@@ -39,6 +40,7 @@ start() ->
              it -> it(), continue();
              get -> read(Args), continue();
              help -> help(Args), continue();
+	     use -> use_connection(Args), continue();
 
              connections -> connections(), continue();
 
@@ -51,8 +53,11 @@ start() ->
 connections() -> Conns = zql:list_connections(),
                  for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
 
-test_connection(Conn) -> p("Connection: "),
-                         p(Conn).
+use_connection(Args) -> ConnectionName = nth(1,Args),
+                        % SKey = to_string(Key),
+                        zql:set( zql:get_connection(system), "conn_name", ConnectionName).
+
+test_connection(Conn) -> p(Conn).
                          %apply(zql,test_connection,[Conn]).
 
 it_help() ->
@@ -122,7 +127,12 @@ hello( ) -> p("Hello. System is available").
 oo_db( ) -> DB = zql:create_oo_session( db_conn_args() ),
             DB.
 
-db_conn_args () -> zql_connections:local_cassandra_connection().
+db_conn_args () -> ExistsConnSpec = zql:exists( zql:get_connection(system), "conn_name"),
+	     	   Conn = case ExistsConnSpec of
+		   	true ->  zql:get_connection(to_atom(zql:get(zql:get_connection(system), "conn_name")));
+ 			false -> zql_connections:local_cassandra_connection()
+		end,
+		Conn.
 
 whichdb( ) -> zql:whichdb( db_conn_args() ).
 

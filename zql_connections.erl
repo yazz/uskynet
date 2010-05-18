@@ -20,3 +20,5 @@ local_mnesia_connection() ->
 local_cassandra_connection() -> 
          Connection = [{driver,zql_cassandra_driver},{hostname,'127.0.0.1'}],
          Connection.
+
+system() -> local_mnesia_connection().
