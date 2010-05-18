@@ -7,6 +7,8 @@ help() ->
 p("help - this command"),
 p("connections - lists the possible connections"),
 p("use connection name"),
+p("connection - shows the current connection"),
+p("start - starts the mnesia database"),
 p("it - the last thing created"),
 p("quit - exits to the command line").
 
@@ -41,7 +43,9 @@ start() ->
              get -> read(Args), continue();
              help -> help(Args), continue();
 	     use -> use_connection(Args), continue();
+	     start -> start_mnesia(),continue();
 
+	     connection -> connection(), continue();
              connections -> connections(), continue();
 
 	     q -> finished;
@@ -50,8 +54,13 @@ start() ->
              _UnknownCommand -> process(Input), continue()
         end.
 
+start_mnesia() -> mnesia:start().
+
 connections() -> Conns = zql:list_connections(),
                  for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
+
+connection() -> C = zql:get( zql:get_connection(system), "conn_name"),
+	     	p( to_string(C) ).
 
 use_connection(Args) -> ConnectionName = nth(1,Args),
                         % SKey = to_string(Key),

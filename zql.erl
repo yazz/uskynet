@@ -136,7 +136,7 @@ p("- ConnectionArgs2 = [{driver,zql_riak_driver}, {hostname,'riak@127.0.0.1'},{b
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-local() -> ConnectionArgs = zql_connections:local_cassandra_connection(),
+local() -> ConnectionArgs = zql_connections:local_mnesia_connection(),
            ConnectionArgs.
                 
 test_conection_help() -> 

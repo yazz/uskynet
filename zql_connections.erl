@@ -5,7 +5,8 @@
 list_connections() -> [
                         local_riak_connection,
                         local_mnesia_connection,
-                        local_cassandra_connection
+                        local_cassandra_connection,
+			system
                       ].
 
 
@@ -14,7 +15,7 @@ local_riak_connection() ->
          RiakConnection.
 
 local_mnesia_connection() -> 
-         MnesiaConnection = [{driver,zql_mnesia_driver},{hostname,'riak@127.0.0.1'},{bucket,<<"default">>}],
+         MnesiaConnection = [{driver,zql_mnesia_driver}],
          MnesiaConnection.
 
 local_cassandra_connection() -> 
