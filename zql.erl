@@ -90,7 +90,7 @@ test_with_connection(C) ->
 
                 set(C, "boy", "Is here"),
                 p("Saved 'boy' as 'is here'"),
-pfdsfds:fdsfds(),
+%pfdsfds:fdsfds(),
 
                 Value = get(C, "boy"),
                 p("got value of boy as : "),
@@ -365,8 +365,10 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property( ConnectionArgs, Key, PropertyName) -> Driver = get_zql_driver_name( ConnectionArgs ),
-                                                    Value = apply(Driver, get_property, [ConnectionArgs, Key, PropertyName]),
+get_property( ConnectionArgs, Key, PropertyName) -> BKey = to_binary(Key),
+                                                    SPropertyName = to_string(PropertyName),
+                                                    Driver = get_zql_driver_name( ConnectionArgs ),
+                                                    Value = apply(Driver, get_property, [ConnectionArgs, BKey, SPropertyName]),
                                                     Value.
 
 
@@ -386,7 +388,7 @@ q('- set( ConnectionArgs, "system", "windows" ).                       -'),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, "value", Value ).
+set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, Value ).
 
 
 
@@ -475,15 +477,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 set_property( ConnArgs, Key, PropertyName, Value ) -> 
-
-                                             DoesRecordExist = exists( ConnArgs, Key),
-                                             case DoesRecordExist of
-                                                false -> create_record( ConnArgs, Key );
-                                                true -> do_nothing
-                                             end,
-
                                              Driver = get_zql_driver_name(ConnArgs),
-
+                                             
                                              apply(Driver, set_property, [ConnArgs, Key, PropertyName, Value]),
 
                                              ok.

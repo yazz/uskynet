@@ -25,7 +25,7 @@ setup() -> mnesia:create_table(
 
 get_property_names( _ConnectionArgs, Key ) -> 
 
-                        ReturnValue = case get_val( Key ) of
+                        ReturnValue = case mnesia_get( Key ) of
                                 [ok, Data] ->  NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
                                                NoDuplicatesSet = sets:from_list(NamesWithDuplicates),
                                                UniqueList = sets:to_list(NoDuplicatesSet),
@@ -36,9 +36,9 @@ get_property_names( _ConnectionArgs, Key ) ->
                         ReturnValue.
 
 
-get_property( ConnectionArgs, Key, PropertyName) -> 
+get_property( _ConnectionArgs, Key, PropertyName ) -> 
 
-                                 Data = get( ConnectionArgs, Key ),
+                                 [ok,Data] = mnesia_get( Key ),
                                  Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
                                  [{_PN, V} | _] = Value,
                                  V.
@@ -76,13 +76,19 @@ set( _ConnectionArgs, Key, Value) -> set_property( x, Key, value, Value ).
 
 
 
-set_property(_C, Key, PropertyName, Value) -> BinaryKey = to_binary(Key),
+set_property(C, Key, PropertyName, Value) ->    BinaryKey = to_binary(Key),
+                                                StringPropertyName = to_string(PropertyName),
 
-                                              [ok,CurrentValues]  = get_val( BinaryKey ),
-                                                
-                                              UpdatedValue = [{PropertyName,Value} | CurrentValues],
+                                                case exists(C, Key) of
 
-                                              put_val( BinaryKey, UpdatedValue).
+                                                        false -> mnesia_set( BinaryKey, [ { StringPropertyName , Value } ] );
+
+                                                        _ -> [ ok , CurrentValues ]  = mnesia_get( BinaryKey ),
+                                                             UpdatedValue = [ { StringPropertyName , Value } | CurrentValues ],
+                                                             mnesia_set( BinaryKey, UpdatedValue )
+                                                end.
+
+
 
 
 
@@ -92,7 +98,7 @@ set_property(_C, Key, PropertyName, Value) -> BinaryKey = to_binary(Key),
 exists(_Connection, Key) -> BinaryKey = to_binary(Key),
 
                             try
-                                get_val( BinaryKey )
+                                mnesia_get( BinaryKey )
                             of
                                 [ok, _] -> true;
                                 [not_found, _] -> false
@@ -148,7 +154,7 @@ delete_all( ConnectionArgs , yes_im_sure ) ->  Keys = ls( ConnectionArgs ),
 
 
 
-put_val(Key, Val) ->    BKey = to_binary(Key),
+mnesia_set(Key, Val) -> BKey = to_binary(Key),
                         Record = #data{key = BKey, value = Val},
 
 	    	        F = fun() ->
@@ -156,17 +162,18 @@ put_val(Key, Val) ->    BKey = to_binary(Key),
 				end,
 		        mnesia:transaction(F).
 
-get_val(Key) -> BKey = to_binary(Key),
-                Result = try
+mnesia_get(Key) -> BKey = to_binary(Key),
+                   Result = try
 
-		    F = fun() ->
+		   F = fun() ->
 				mnesia:read({data, BKey})
 		  		end,
-		    {atomic, Data} = mnesia:transaction(F),
-		    [{data,BKey,Value}] = Data,
-                    Value
 
-                of
+		   {atomic, Data} = mnesia:transaction(F),
+		   [{data,BKey,Value}] = Data,
+                   Value
+
+                   of
                      Val -> [ok,Val]
                 catch
                      _:_Reason -> [ not_found , value ]
