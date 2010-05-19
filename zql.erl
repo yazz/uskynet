@@ -90,8 +90,6 @@ test_with_connection(C) ->
 
                 set(C, "boy", "Is here"),
                 p("Saved 'boy' as 'is here'"),
-%pfdsfds:fdsfds(),
-
                 Value = get(C, "boy"),
                 p("got value of boy as : "),
                 println(Value),
@@ -156,11 +154,11 @@ p("- >> {error, bad_connection}                                        _"),
 p("---------------------------------------------------------------------").
 
 test_connection( ConnectionArgs ) -> try ( 
-                                                test_conn( ConnectionArgs ) 
-                                          ) of
-                                                _ -> {ok, connection_fine}
+                                         test_conn( ConnectionArgs ) 
+                                     ) of
+                                         _ -> {ok, connection_fine}
                                      catch
-                                        _Exception:_Reason -> {error, bad_connection}
+                                         _Exception:_Reason -> {error, bad_connection}
                                      end.
 
 
@@ -482,32 +480,6 @@ set_property( ConnArgs, Key, PropertyName, Value ) ->
                                              apply(Driver, set_property, [ConnArgs, Key, PropertyName, Value]),
 
                                              ok.
-
-
-
-
-
-delete_property_value_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-               delete_property_value(C,Key,PropertyName,Value)     -"),
-p("-                                                                   -"),
-p("-              Deletes a specific property value from a record      -"),
-p("-                                                                   -"),
-p("- Example:                                                          -"),
-p("-                                                                   -"),
-p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
-p("-                                                                   -"),
-p("---------------------------------------------------------------------").
-
-delete_property_value(C, Key, PropertyName, Value) ->  
-
-                             Driver = get_zql_driver_name(C),
-                             apply(Driver, delete_property, [C, Key, PropertyName, Value]),
-                             ok.
-
-
 
 
 

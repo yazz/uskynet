@@ -7,10 +7,7 @@
 
 name( ) -> "Mnesia".
 
-
-
 connect(_Connection) -> ok.
-
 
 setup() -> mnesia:create_table(
                 data, 
@@ -19,9 +16,6 @@ setup() -> mnesia:create_table(
                         {attributes, record_info(fields, data)}
                 ]
           ).
-
-
-
 
 get_property_names( _ConnectionArgs, Key ) -> 
 
@@ -89,8 +83,21 @@ set_property(C, Key, PropertyName, Value) ->    BinaryKey = to_binary(Key),
                                                 end.
 
 
+delete_property(Connection, Key, Property) ->   BinaryKey = to_binary(Key),
+                                                StringPropertyName = to_string(PropertyName),
 
+                                                case exists(C, Key) of
 
+                                                        true -> [ok, CurrentValues ] = mnesia_get( BinaryKey ),
+                                                        UpdatedValue = delete_property_list( StringPropertyName, CurrentValues ),
+                                                        mnesia_set( BinaryKey, UpdatedValue );
+
+                                                        _ -> ok
+                                                end.
+
+delete_property_list( _Col, [] ) -> [];
+delete_property_list( Col, [{Col,_AnyValue} | T ]) -> delete_property_list( Col, T);
+delete_property_list( Col, [H | T]) -> [ H | delete_property_list(Col, T) ].
 
 
 
@@ -226,3 +233,8 @@ delete_key(Key) ->
                             end, List)
         end,
         mnesia:transaction(Fun).
+
+
+
+
+
