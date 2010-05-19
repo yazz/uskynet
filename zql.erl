@@ -90,7 +90,7 @@ test_with_connection(C) ->
 
                 set(C, "boy", "Is here"),
                 p("Saved 'boy' as 'is here'"),
-                Value = get(C, "boy"),
+                [ok,Value] = get(C, "boy"),
                 p("got value of boy as : "),
                 println(Value),
                 println("Check 'boy' exists :"),
@@ -225,12 +225,12 @@ print( ConnectionArgs, Key) ->
     ok.
 
 print_fn( Conn, Key ) ->
-          
-    PropertyNames = get_property_names( Conn, Key ),
+    BKey = to_binary(Key),
+    PropertyNames = get_property_names( Conn, BKey ),
     lists:foreach(
              fun( PropertyName ) ->
-                  PropValue = get_property( Conn , Key, PropertyName), 
-                  io:format( "~s:~s~n", [ PropertyName, PropValue ]) 
+                  PropValue = get_property( Conn , BKey, to_string(PropertyName)), 
+                  io:format( "~s:~s~n", [ to_string(PropertyName), to_string(PropValue) ]) 
              end,
              PropertyNames),
              ok.
@@ -320,7 +320,8 @@ q('- > zql:get( ConnectionArgs, "UndefinedThing" ).                    -'),
 q('- [not_found, item]                                                 -'),
 p("---------------------------------------------------------------------").
 
-get( ConnectionArgs, Key ) -> Result = get_property( ConnectionArgs, Key, value ),
+get( ConnectionArgs, Key ) -> BKey = to_binary(Key),
+                              Result = get_property( ConnectionArgs, BKey, value ),
                               Result.
 
 
@@ -341,7 +342,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 get_property_names( ConnectionArgs, Key) -> Driver = get_zql_driver_name(ConnectionArgs),
-                                            PropertyNames = apply(Driver, get_property_names, [ConnectionArgs, Key]),
+                                            BKey = to_binary(Key),
+                                            PropertyNames = apply(Driver, get_property_names, [ConnectionArgs, BKey]),
                                             PropertyNames.
 
 
@@ -363,11 +365,11 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-get_property( ConnectionArgs, Key, PropertyName) -> BKey = to_binary(Key),
-                                                    SPropertyName = to_string(PropertyName),
-                                                    Driver = get_zql_driver_name( ConnectionArgs ),
-                                                    Value = apply(Driver, get_property, [ConnectionArgs, BKey, SPropertyName]),
-                                                    Value.
+get_property( ConnectionArgs, Key, PropertyName) ->  BKey = to_binary(Key),
+                                                     SPropertyName = to_string(PropertyName),
+                                                     Driver = get_zql_driver_name( ConnectionArgs ),
+                                                     Value = apply(Driver, get_property, [ConnectionArgs, BKey, SPropertyName]),
+                                                     Value.
 
 
 
@@ -447,11 +449,11 @@ p("- print_all( ConnectionArgs ).                                      -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-has_property( ConnectionArgs, Key, PropertyName) -> 
-
-                                               PropertyNames = get_property_names( ConnectionArgs, Key),
-                                               ContainsKey = lists:member( PropertyName, PropertyNames),
-                                               ContainsKey.
+has_property( ConnectionArgs, Key, PropertyName ) -> BKey = to_binary(Key),
+                                                     SPropertyName = to_string(PropertyName),
+                                                     PropertyNames = get_property_names( ConnectionArgs, BKey ),
+                                                     ContainsKey = lists:member( SPropertyName, PropertyNames ),
+                                                     ContainsKey.
 
 
 
@@ -476,8 +478,9 @@ p("---------------------------------------------------------------------").
 
 set_property( ConnArgs, Key, PropertyName, Value ) -> 
                                              Driver = get_zql_driver_name(ConnArgs),
-                                             
-                                             apply(Driver, set_property, [ConnArgs, Key, PropertyName, Value]),
+                                             BKey = to_binary(Key),
+                                             SPropertyName = to_string(PropertyName),
+                                             apply(Driver, set_property, [ConnArgs, BKey, SPropertyName, Value]),
 
                                              ok.
 
@@ -503,7 +506,9 @@ p("---------------------------------------------------------------------").
 delete_property(C, Key, PropertyName) ->
 
                              Driver = get_zql_driver_name(C),
-                             apply(Driver, delete_property, [C, Key, PropertyName]),
+                             BKey = to_binary(Key),
+                             SPropertyName = to_string(PropertyName),
+                             apply(Driver, delete_property, [C, BKey, SPropertyName]),
                              ok.
 
 
@@ -527,7 +532,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 exists( Connection, Key ) -> Driver = get_zql_driver_name( Connection ),
-                             Exists = apply( Driver, exists, [ Connection, Key ] ),
+                             BKey = to_binary(Key),
+                             Exists = apply( Driver, exists, [ Connection, BKey ] ),
                              Exists.
 
 
@@ -555,7 +561,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 delete(Connection,Key) -> Driver = get_zql_driver_name(Connection),
-                          apply(Driver, delete, [Connection, Key]),
+                          BKey = to_binary(Key),
+                          apply(Driver, delete, [Connection, BKey]),
                           ok.
 
 
