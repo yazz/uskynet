@@ -136,8 +136,8 @@ p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 process( InputText ) -> p("Searching for '" ++ InputText ++ "'"),
-	 	     	V =  zql:get( db_conn_args(), InputText ),
-	 	     	p(V).
+                        [ok,V] =  zql:get( db_conn_args(), InputText ),
+                        p(V).
 
 
 
@@ -152,12 +152,14 @@ hello( ) -> p("Hello. System is available").
 oo_db( ) -> DB = zql:create_oo_session( db_conn_args() ),
             DB.
 
-db_conn_args () -> ExistsConnSpec = zql:exists( zql:get_connection(system), "conn_name"),
-	     	   Conn = case ExistsConnSpec of
-		   	true ->  zql:get_connection(to_atom(zql:get(zql:get_connection(system), "conn_name")));
- 			false -> zql_connections:local_cassandra_connection()
-		end,
-		Conn.
+db_conn_args () ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
+                    Conn = case WhichConnectionToUseResult of
+                        [ok, ConnName] -> zql:get_connection( ConnName );
+                        [_,_] -> zql_connections:local_mnesia_connection()
+                    end,
+                    Conn.
+
+sys_connection() -> zql:get_connection(system).
 
 whichdb( ) -> zql:whichdb( db_conn_args() ).
 

@@ -646,7 +646,8 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connectio
 
 create_oo_session( ConnectionArgs ) -> zql_oo_helper:create_oo_session( ConnectionArgs ).
 list_connections() -> zql_connections:list_connections().
-get_connection(Conn) -> apply(zql_connections,Conn,[]).
+get_connection(Conn) -> ConnAsAtom = to_atom(Conn),
+                        apply( zql_connections , ConnAsAtom , [] ).
 
 
 
