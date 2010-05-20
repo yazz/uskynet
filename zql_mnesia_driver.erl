@@ -7,7 +7,7 @@
 
 name( ) -> "Mnesia".
 
-cognnect(_Connection) -> ok.
+connect(_Connection) -> ok.
 
 setup() -> mnesia:create_table(
                 data, 
@@ -31,12 +31,13 @@ get_property_names( _ConnectionArgs, Key ) ->
 
 
 get_property( _Conn, Key, PropertyName ) -> 
-
-                                 [ ok , Data ] = mnesia_get( Key ),
-                                 Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
-                                 [ {_PN, V} | _] = Value,
-
-                                 [ ok, V ].
+                                    Result = mnesia_get( Key ),
+                                    case Result of 
+                                        [ ok , Data ] -> Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
+                                                         [ {_PN, V} | _] = Value,
+                                                         [ ok, V ];
+                                        [_,_] -> Result
+                                    end.
 
 
 

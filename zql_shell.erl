@@ -8,59 +8,9 @@ p("help - this command"),
 p("connections - lists the possible connections"),
 p("use connection name"),
 p("connection - shows the current connection"),
-p("start - starts the mnesia database"),
 p("it - the last thing created"),
+p("create it - make it into an item"),
 p("quit - exits to the command line").
-
-
-
-help(Args) -> Num = length(Args),
-              
-              case Num of 
-                   0 -> help();
-
-                   _ -> Command = nth(1,Args),
-		     	HelpFunctionName = Command ++ "_help",
-                     	apply(sh, list_to_atom(HelpFunctionName), [ ])
-              end.
-
-
-continue() -> start().
-
-
-start_mnesia() -> mnesia:create_schema([node()]),
-                  mnesia:start(),
-                  ok.
-
-init() -> start_mnesia().
-
-start() -> 
-        p(""),
-     	p("---------------------------------------------------------------------------------------------"),
-        InputWithReturn = io:get_line(">"),
-	Input = remove_newline(InputWithReturn),
-        
-        Tokens = string:tokens(Input, " \n"),
-        [Command | Args] = Tokens,
-
-	CommandAtom = list_to_atom(Command),
-
-        case CommandAtom of
-             it -> it(), continue();
-             get -> read(Args), continue();
-             help -> help(Args), continue();
-	     use -> use_connection(Args), continue();
-	     start -> start_mnesia(),continue();
-
-	     connection -> connection(), continue();
-             connections -> connections(), continue();
-
-	     q -> finished;
-             quit -> finished;
-
-             _UnknownCommand -> process(Input), continue()
-        end.
-
 
 
 
@@ -71,12 +21,18 @@ start() ->
 connections() -> Conns = zql:list_connections(),
                  for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
 
-connection() -> C = zql:get( zql:get_connection(system), "conn_name"),
-	     	p( to_string(C) ).
-
 use_connection(Args) -> ConnectionName = nth(1,Args),
                         % SKey = to_string(Key),
                         zql:set( zql:get_connection(system), "conn_name", ConnectionName).
+
+connection() -> C = zql:get( zql:get_connection(system), "conn_name"),
+	     	    p( to_string(C) ).
+
+
+
+
+
+
 
 test_connection(Conn) -> p(Conn).
                          %apply(zql,test_connection,[Conn]).
@@ -94,13 +50,19 @@ p("-     Used to refer to the last used object                         -"),
 p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
-p("- > get person_ref						       -"),
+p("- > person_ref						                               -"),
 p("- > delete it                                                       -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
 it() -> R = last(),
         R:print().
+
+
+
+
+create_it() ->  ItemText = get(last_used_text),
+                
 
 
 
@@ -126,18 +88,27 @@ p("---------------------------------------------------------------------"),
 p("-                                                                   -"),
 p("-                      process( InputText )                         -"),
 p("-                                                                   -"),
-p("-    processes free text       				       -"),
+p("-                       processes free text       				   -"),
 p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
-p("- > 						       		       -"),
+p("- > 						       		                               -"),
 p("- >                                                        	       -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-process( InputText ) -> p("Searching for '" ++ InputText ++ "'"),
-                        [ok,V] =  zql:get( db_conn_args(), InputText ),
-                        p(V).
+process( InputText ) -> 
+
+                        InputTextIsAKey = zql:get( db_conn_args(), InputText ),
+                        case InputTextIsAKey of
+                            [ok,V] ->   p("Searching for '" ++ InputText ++ "'"),
+                                        p(V);
+
+                            [_,_V] ->   p(" '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)"),
+                                        zql:set(db(), "last_input", InputText)
+                                        
+                                        
+                        end.
 
 
 
@@ -148,10 +119,11 @@ hello( ) -> p("Hello. System is available").
 
 
 
-
+oodb() -> oo_db().
 oo_db( ) -> DB = zql:create_oo_session( db_conn_args() ),
             DB.
 
+db() -> db_conn_args().
 db_conn_args () ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
                     Conn = case WhichConnectionToUseResult of
                         [ok, ConnName] -> zql:get_connection( ConnName );
@@ -247,3 +219,53 @@ add_relationship( X, Relationship, Y ) ->
 
 r( Relationship ) -> add_relationship( last() , Relationship, last2() ).
 print(X) -> zprint:p(X).
+
+help(Args) ->   Num = length(Args),
+              
+                case Num of 
+                    0 -> help();
+
+                    _ -> Command = nth(1,Args),
+
+                    HelpFunctionName = Command ++ "_help",
+                    apply( sh, list_to_atom( HelpFunctionName ), [ ] )
+              end.
+
+continue() -> start().
+
+
+start_mnesia() -> mnesia:create_schema( [ node() ] ),
+                  mnesia:start(),
+                  ok.
+
+init() -> start_mnesia().
+
+start() -> 
+        p(""),
+     	p("---------------------------------------------------------------------------------------------"),
+        InputWithReturn = io:get_line(">"),
+	Input = remove_newline(InputWithReturn),
+        
+        Tokens = string:tokens(Input, " \n"),
+        [Command | Args] = Tokens,
+
+	CommandAtom = list_to_atom(Command),
+
+        case CommandAtom of
+            it -> it(), continue();
+            get -> read(Args), continue();
+            create -> create_item, continue();
+            help -> help(Args), continue();
+	     use -> use_connection(Args), continue();
+	     start -> start_mnesia(),continue();
+
+	     connection -> connection(), continue();
+             connections -> connections(), continue();
+
+	     q -> finished;
+             quit -> finished;
+
+             _UnknownCommand -> process(Input), continue()
+        end.
+
+
