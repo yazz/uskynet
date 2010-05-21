@@ -23,6 +23,6 @@ compile_all() -> compile(zql_utils),
                  compile(user_default),
                  compile(zql_compiler).
 
-compile(SourceFile) -> c:c(SourceFile).
+compile(SourceFile) -> c:c(SourceFile, [debug_info]).
 
 

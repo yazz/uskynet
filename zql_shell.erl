@@ -8,6 +8,7 @@ p("help - this command"),
 p("connections - lists the possible connections"),
 p("use connection name"),
 p("connection - shows the current connection"),
+p("count/size - number of items in the system"),
 p("it - the last thing created"),
 p("create it - make it into an item"),
 p("quit - exits to the command line").
@@ -145,8 +146,6 @@ test( ) -> zql:test_with_connection( db_conn_args() ).
 
 lsdb( ) -> zql:ls( db_conn_args() ).
 
-count( ) -> zql:count( db_conn_args() ).
-
 
 find( ) -> count( ).
 
@@ -211,6 +210,11 @@ new( Text ) ->
 
 %it_is_a( Type ) -> add_relationship( X, "is a", Y ).
 
+count() ->  Count = zql:count(db()),
+            p("Number of items in database"),
+            print_number(Count).
+
+
 add_relationship( X, Relationship, Y ) ->
 
                  Oodb = oo_db(),
@@ -246,7 +250,7 @@ init() -> start_mnesia().
 
 start() -> 
         p(""),
-     	p("---------------------------------------------------------------------------------------------"),
+     	p("--------------------------------------------------------------"),
         InputWithReturn = io:get_line(">"),
 	Input = remove_newline(InputWithReturn),
         
@@ -260,6 +264,8 @@ start() ->
             get -> read(Args), continue();
             create -> create_it(), continue();
             help -> help(Args), continue();
+            count -> count(), continue();
+            size -> count(), continue();
 	     use -> use_connection(Args), continue();
 	     start -> start_mnesia(),continue();
 
