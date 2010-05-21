@@ -26,7 +26,9 @@ print_number(N) ->   io:format("~w~n", [N]).
 println(Line)  ->   io:fwrite(Line),
                     io:fwrite("~n").
 
+
 to_binary(Value) when is_binary(Value) -> Value;
+to_binary(Atom) when is_atom(Atom) -> to_binary(to_string(Atom));
 to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 hex_uuid() -> UUID_with_newline = os:cmd("uuidgen"),

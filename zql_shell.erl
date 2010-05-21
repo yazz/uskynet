@@ -61,10 +61,14 @@ it() -> R = last(),
 
 
 
-create_it() ->  ItemText = get(last_used_text),
+create_it() ->  p("Attempting to create an item"),
+                ItemText = get_value(last_used_text),
+                Id = store( ItemText ),
+                p(Id).
                 
 
 
+get_value( Key ) -> zql:get_or_nil( db_conn_args(), Key).
 
 
 
@@ -254,7 +258,7 @@ start() ->
         case CommandAtom of
             it -> it(), continue();
             get -> read(Args), continue();
-            create -> create_item, continue();
+            create -> create_it(), continue();
             help -> help(Args), continue();
 	     use -> use_connection(Args), continue();
 	     start -> start_mnesia(),continue();

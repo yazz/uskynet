@@ -326,6 +326,16 @@ get( ConnectionArgs, Key ) -> BKey = to_binary(Key),
 
 
 
+get_or_nil( ConnectionArgs, Key ) ->    Result = get( ConnectionArgs, Key),
+                                        ReturnValue = case Result of
+                                            [ok, Value] -> Value;
+                                            [_X,_Y] -> nil
+                                        end,
+                                        ReturnValue.
+
+
+
+
 
 get_property_names_help() -> 
 p("---------------------------------------------------------------------"),
