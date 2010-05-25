@@ -5,12 +5,17 @@
 help() -> 
 
 p("help - this command"),
+
 p("connections - lists the possible connections"),
 p("use connection name"),
-p("connection - shows the current connection"),
+p("current connection - shows the current connection"),
+p("test connection - tests the named connection"),
+
 p("count/size - number of items in the system"),
 p("it - the last thing created"),
 p("create it - make it into an item"),
+p("ls - list files"),
+p("pwd - print current directory"),
 p("quit - exits to the command line").
 
 
@@ -19,15 +24,71 @@ p("quit - exits to the command line").
 
 
 
+connections_help() ->
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                       connections                                 -"),
+p("-                                                                   -"),
+p("-          show a list of the connections available                 -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- > connections( )                                                  -"),
+p("-                                                                   -"),
+p("- Used by shell as:                                                 -"),
+p("-                                                                   -"),
+p("- > connections                                                     -"),
+p("- > get connections                                                 -"),
+p("---------------------------------------------------------------------").
 connections() -> Conns = zql:list_connections(),
                  for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
 
+
+
+
+use_connections_help() ->
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                       use_connections                             -"),
+p("-                                                                   -"),
+p("-                 use a specific connection                         -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- > use_connection( oracle )                                        -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("- Used by shell as:                                                 -"),
+p("-                                                                   -"),
+p("- > use connection oracle                                           -"),
+p("---------------------------------------------------------------------").
 use_connection(Args) -> ConnectionName = nth(1,Args),
-                        % SKey = to_string(Key),
                         zql:set( zql:get_connection(system), "conn_name", ConnectionName).
 
-connection() -> C = zql:get( zql:get_connection(system), "conn_name"),
-	     	    p( to_string(C) ).
+
+
+
+
+
+show_current_connection_help() ->
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                  show_current_connection                          -"),
+p("-                                                                   -"),
+p("-                shows the current connection in use                -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- > show_current_connection( )                                      -"),
+p("-                                                                   -"),
+p("-                                                                   -"),
+p("- Used by shell as:                                                 -"),
+p("-                                                                   -"),
+p("- > show current connection                                         -"),
+p("---------------------------------------------------------------------").
+
+show_current_connection() ->    ConnectionName = zql:get( sys_connection(), "conn_name"),
+	     	                    p( ConnectionName ).
 
 
 
@@ -35,8 +96,27 @@ connection() -> C = zql:get( zql:get_connection(system), "conn_name"),
 
 
 
-test_connection(Conn) -> p(Conn).
-                         %apply(zql,test_connection,[Conn]).
+test_connection_help() ->
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                       test_connection(Conn)                       -"),
+p("-                                                                   -"),
+p("-          show a list of the connections available                 -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- > connections( )                                                  -"),
+p("-                                                                   -"),
+p("- Used by shell as:                                                 -"),
+p("-                                                                   -"),
+p("- > connections                                                     -"),
+p("- > get connections                                                 -"),
+p("---------------------------------------------------------------------").
+
+test( ) -> test_with_connection( db() ).
+
+test_with_connection( Conn ) -> p( Conn ),
+                                apply(zql,test_connection,[ Conn ]).
 
 
 
@@ -63,13 +143,13 @@ it() -> R = last(),
 
 
 create_it() ->  p("Attempting to create an item"),
-                ItemText = get_value(last_used_text),
-                Id = store( ItemText ),
-                p(Id).
+                ItemText = get_value( last_typed_text ),
+                Record = store( ItemText ),
+                Record:print().
                 
 
 
-get_value( Key ) -> zql:get_or_nil( db_conn_args(), Key).
+get_value( Key ) -> zql:get_or_nil( db(), Key).
 
 
 
@@ -79,7 +159,7 @@ read(Args) -> p("get called with arg count of:"),
               case Num of 
                    1 -> Key = nth(1,Args),
                         SKey = to_string(Key),
-                        V = zql:get( db_conn_args(), SKey),
+                        V = zql:get( db(), SKey),
                         p(V);
                    X -> print_number(X)
               end.
@@ -104,15 +184,15 @@ p("---------------------------------------------------------------------").
 
 process( InputText ) -> 
 
-                        InputTextIsAKey = zql:get( db_conn_args(), InputText ),
-                        case InputTextIsAKey of
-                            [ok,V] ->   p("Searching for '" ++ InputText ++ "'"),
-                                        p(V);
+                        InputTextIsAKey = zql:get( db(), InputText ),
 
-                            [_,_V] ->   p(" '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)"),
-                                        zql:set(db(), "last_input", InputText)
-                                        
-                                        
+                        case InputTextIsAKey of
+
+                            [ ok, Value ] ->   p( "Searching for '" ++ InputText ++ "'" ),
+                                               p( Value );
+
+                            [ _, _V ] ->   p( " '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)" ),
+                                           zql:set(db(), "last_typed_text", InputText)
                         end.
 
 
@@ -124,12 +204,11 @@ hello( ) -> p("Hello. System is available").
 
 
 
-oodb() -> oo_db().
-oo_db( ) -> DB = zql:create_oo_session( db_conn_args() ),
-            DB.
 
-db() -> db_conn_args().
-db_conn_args () ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
+oodb( ) -> DB = zql:create_oo_session( db() ),
+           DB.
+
+db() ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
                     Conn = case WhichConnectionToUseResult of
                         [ok, ConnName] -> zql:get_connection( ConnName );
                         [_,_] -> zql_connections:local_mnesia_connection()
@@ -138,18 +217,18 @@ db_conn_args () ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn
 
 sys_connection() -> zql:get_connection(system).
 
-whichdb( ) -> zql:whichdb( db_conn_args() ).
-
-test( ) -> zql:test_with_connection( db_conn_args() ).
+whichdb( ) -> zql:whichdb( db() ).
 
 
 
-lsdb( ) -> zql:ls( db_conn_args() ).
+
+
+lsdb( ) -> zql:ls( db() ).
 
 
 find( ) -> count( ).
 
-add(Type) -> DB = oo_db(),
+add(Type) -> DB = oodb(),
              Record = DB:create_record( ),
              Record:set(type,Type),
              Record.
@@ -166,13 +245,13 @@ history() -> lp2(),
              lp().
 
 
-add_code(TriggerRule, Code) -> DB = oo_db(),
+add_code(TriggerRule, Code) -> DB = oodb(),
                                Record = DB:create_record( ),
                                Record:set(type,"code"),
                                Record:set(trigger, TriggerRule),
                                Record:set(code, Code),
                                Id = Record:id(),
-                               Db = db_conn_args(),
+                               Db = db(),
                                CodeRecord = zql_oo_code_record:new( Db, Id ),
                                CodeRecord.
 
@@ -180,32 +259,30 @@ add_code( ) ->                 add_code("", "").
 
 
 
-last( Record )      -> Oodb = oo_db(), 
+last( Record )      -> Oodb = oodb(), 
                        RecentlyUsed = Oodb:create_record("last_used"),
                        LastId = RecentlyUsed:get("last"),
                        RecentlyUsed:set( "last2", LastId ),
                        RecentlyUsed:set( "last", Record:id() ).
 
-last() ->      Oodb = oo_db(),
+last() ->      Oodb = oodb(),
                LastUsed = Oodb:last(),
                LastUsed.
 
-last2() ->     Oodb = oo_db(),
+last2() ->     Oodb = oodb(),
                LastUsed2 = Oodb:last2(),
                LastUsed2.
 
-new( ) -> DB = oo_db(),
+new( ) -> DB = oodb(),
           Record = DB:create_record( ),
           Record.
 
 %ContentKey = sha1:hexstring( Text ),
 
-store(Text) -> new( Text ).
-new( Text ) -> 
-                 Oodb = oo_db(),
+store( Text) ->  Oodb = oodb(),
                  Record = Oodb:create_record( ),
                  Record:set( Text ),
-                 last(Record),
+                 %last(Record),
                  Record.
 
 %it_is_a( Type ) -> add_relationship( X, "is a", Y ).
@@ -217,7 +294,7 @@ count() ->  Count = zql:count(db()),
 
 add_relationship( X, Relationship, Y ) ->
 
-                 Oodb = oo_db(),
+                 Oodb = oodb(),
                  Record = Oodb:create_record( ),
                  Record:set( "type", Relationship ),
                  Record:set( "first", X:id() ),
@@ -249,33 +326,32 @@ start_mnesia() -> mnesia:create_schema( [ node() ] ),
 init() -> start_mnesia().
 
 start() -> 
-        p(""),
-     	p("--------------------------------------------------------------"),
-        InputWithReturn = io:get_line(">"),
-	Input = remove_newline(InputWithReturn),
-        
-        Tokens = string:tokens(Input, " \n"),
-        [Command | Args] = Tokens,
+            p(""),
+            p("--------------------------------------------------------------"),
 
-	CommandAtom = list_to_atom(Command),
+            InputWithReturn = io:get_line(">"),
+            Input = remove_newline(InputWithReturn),        
+            Tokens = string:tokens(Input, " \n"),
 
-        case CommandAtom of
-            it -> it(), continue();
-            get -> read(Args), continue();
-            create -> create_it(), continue();
-            help -> help(Args), continue();
-            count -> count(), continue();
-            size -> count(), continue();
-	     use -> use_connection(Args), continue();
-	     start -> start_mnesia(),continue();
+            [Command | Args] = Tokens,
+            CommandAtom = list_to_atom(Command),
 
-	     connection -> connection(), continue();
-             connections -> connections(), continue();
+            case CommandAtom of
 
-	     q -> finished;
-             quit -> finished;
+                it -> it(), continue();
+                get -> read(Args), continue();
+                create -> create_it(), continue();
+                help -> help(Args), continue();
+                count -> count(), continue();
+                size -> count(), continue();
+	            use -> use_connection(Args), continue();
+	            start -> start_mnesia(),continue();
 
-             _UnknownCommand -> process(Input), continue()
-        end.
+	            current -> show_current_connection(), continue();
+                connections -> connections(), continue();
 
+	            q -> finished;
+                quit -> finished;
 
+                _UnknownCommand -> process(Input), continue()
+            end.

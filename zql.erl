@@ -210,7 +210,7 @@ p("- print( ConnectionArgs, Key ).                                     -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 
-print( ConnectionArgs, Key) -> 
+print( ConnectionArgs, Key ) -> 
     p("--------------------------------------------------------------"),
     io:format("ID:~s~n", [Key]),
     p("--------------------------------------------------------------"),
@@ -225,15 +225,20 @@ print( ConnectionArgs, Key) ->
     ok.
 
 print_fn( Conn, Key ) ->
-    BKey = to_binary(Key),
-    PropertyNames = get_property_names( Conn, BKey ),
+
+    PropertyNames = get_property_names( Conn, Key ),
+
     lists:foreach(
              fun( PropertyName ) ->
-                  PropValue = get_property( Conn , BKey, to_string(PropertyName)), 
+
+                  [ok,PropValue] = get_property( Conn , Key, PropertyName ), 
+
                   io:format( "~s:~s~n", [ to_string(PropertyName), to_string(PropValue) ]) 
              end,
-             PropertyNames),
-             ok.
+
+             PropertyNames
+    ),
+    ok.
 
 
 
@@ -619,7 +624,7 @@ p("-                                                                   -"),
 p("- Example:                                                          -"),
 p("-                                                                   -"),
 p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
+p("- count( ConnectionArgs ).                                          -"),
 p("-                                                                   -"),
 p("---------------------------------------------------------------------").
 

@@ -14,7 +14,8 @@ help() -> println("----------------------------------------------------------"),
 
 nl() -> println("").
 
-p(Line) -> println(Line).
+p(Line) ->  SLine = to_string(Line),
+            println(SLine).
 
 print(Line)  ->   io:fwrite(Line).
 
