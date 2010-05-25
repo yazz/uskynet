@@ -191,8 +191,18 @@ process( InputText ) ->
                             [ ok, Value ] ->   p( "Searching for '" ++ InputText ++ "'" ),
                                                p( Value );
 
-                            [ _, _V ] ->   p( " '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)" ),
-                                           zql:set(db(), "last_typed_text", InputText)
+                            [ _, _V ] ->    TrackingToken = content_key( InputText ),
+                                            TrackingTokenResult = zql:get( db(), TrackingToken ),
+
+                                            case TrackingTokenResult of
+                                                [ ok, Value2 ] -> p( "Found '" ++ InputText ++ "'" ),
+                                                              p( Value );
+
+                                                [ _, _V ] ->
+
+                                                       p( " '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)" ),
+                                                       zql:set(db(), "last_typed_text", InputText)
+                                            end
                         end.
 
 
@@ -209,9 +219,12 @@ oodb( ) -> DB = zql:create_oo_session( db() ),
            DB.
 
 db() ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
+
                     Conn = case WhichConnectionToUseResult of
+
                         [ok, ConnName] -> zql:get_connection( ConnName );
                         [_,_] -> zql_connections:local_mnesia_connection()
+
                     end,
                     Conn.
 
@@ -277,13 +290,18 @@ new( ) -> DB = oodb(),
           Record = DB:create_record( ),
           Record.
 
-%ContentKey = sha1:hexstring( Text ),
 
-store( Text) ->  Oodb = oodb(),
-                 Record = Oodb:create_record( ),
-                 Record:set( Text ),
-                 %last(Record),
-                 Record.
+
+store( Text) -> Oodb = oodb(),
+                Record = Oodb:create_record( ),
+                Record:set( Text ),
+
+                ContentKey = content_key( Text ),
+                ContentTrackingRecord = Oodb:create_record(ContentKey),
+                ContentTrackingRecord:set( track_id, Record:id() ),
+                 
+                %last(Record),
+                Record.
 
 %it_is_a( Type ) -> add_relationship( X, "is a", Y ).
 
@@ -316,7 +334,7 @@ help(Args) ->   Num = length(Args),
                     apply( sh, list_to_atom( HelpFunctionName ), [ ] )
               end.
 
-continue() -> start().
+
 
 
 start_mnesia() -> mnesia:create_schema( [ node() ] ),
@@ -325,6 +343,7 @@ start_mnesia() -> mnesia:create_schema( [ node() ] ),
 
 init() -> start_mnesia().
 
+continue() -> start().
 start() -> 
             p(""),
             p("--------------------------------------------------------------"),

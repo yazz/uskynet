@@ -83,3 +83,5 @@ for_each_item(List, Function) ->
 
         lists:foreach( Function, List).
 
+
+content_key(Text) -> sha1:hexstring( Text ).
