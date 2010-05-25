@@ -192,16 +192,13 @@ process( InputText ) ->
                                                p( Value );
 
                             [ _, _V ] ->    TrackingToken = content_key( InputText ),
-                                            TrackingTokenResult = zql:get( db(), TrackingToken ),
+                                            TrackingTokenResult = zql:get_property( db(), TrackingToken, tracking_id ),
 
                                             case TrackingTokenResult of
-                                                [ ok, Value2 ] -> p( "Found '" ++ InputText ++ "'" ),
-                                                              p( Value );
+                                                [ ok, Value2 ] -> p( "Found '" ++ InputText ++ "' as ID " ++ Value2 );
 
-                                                [ _, _V ] ->
-
-                                                       p( " '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)" ),
-                                                       zql:set(db(), "last_typed_text", InputText)
+                                                [ _, _Value2 ] -> p( " '" ++ InputText ++ "' doesn't exist (type 'create it' to it turn into an item)" ),
+                                                       	       	  zql:set(db(), "last_typed_text", InputText)
                                             end
                         end.
 
@@ -298,7 +295,7 @@ store( Text) -> Oodb = oodb(),
 
                 ContentKey = content_key( Text ),
                 ContentTrackingRecord = Oodb:create_record(ContentKey),
-                ContentTrackingRecord:set( track_id, Record:id() ),
+                ContentTrackingRecord:set( tracking_id, Record:id() ),
                  
                 %last(Record),
                 Record.
