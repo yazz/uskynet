@@ -6,7 +6,7 @@ list_connections() -> [
                         local_riak_connection,
                         local_mnesia_connection,
                         local_cassandra_connection,
-			system
+                        system
                       ].
 
 
