@@ -16,6 +16,7 @@ nl() -> println("").
 
 p(Line) ->  SLine = to_string(Line),
             println(SLine).
+p() -> p("").
 
 print(Line)  ->   io:fwrite(Line).
 

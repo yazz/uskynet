@@ -12,7 +12,8 @@
                 for_each_item/2,
                 content_key/1,
                 is_string/1,
-                to_atom/1
+                to_atom/1,
+                p/0
 		]).
 
 -import(lists,[nth/2]).

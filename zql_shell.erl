@@ -4,6 +4,7 @@
 
 help() -> 
 
+p(),
 p("help - this command"),
 
 p("connections - lists the possible connections"),
@@ -11,7 +12,11 @@ p("use connection name"),
 p("current connection - shows the current connection"),
 p("test connection - tests the named connection"),
 
-p("count/size - number of items in the system"),
+p("load \"file name\" - loads and prints a file's contents"),
+
+p("count/size - number of items in the system"),    
+
+
 p("it - the last thing created"),
 p("create it - make it into an item"),
 p("ls - list files"),
@@ -41,7 +46,7 @@ p("- > connections                                                     -"),
 p("- > get connections                                                 -"),
 p("---------------------------------------------------------------------").
 connections() -> Conns = zql:list_connections(),
-                 for_each_item( Conns, fun(C) -> zql_shell:test_connection(C) end ).
+                 for_each_item( Conns, fun(C) -> zql_shell:test_with_connection(C) end ).
 
 
 
@@ -87,7 +92,7 @@ p("-                                                                   -"),
 p("- > show current connection                                         -"),
 p("---------------------------------------------------------------------").
 
-show_current_connection() ->    ConnectionName = zql:get( sys_connection(), "conn_name"),
+show_current_connection() ->    ConnectionName = zql:get_or_nil( sys_connection(), "conn_name"),
 	     	                    p( ConnectionName ).
 
 
@@ -265,15 +270,15 @@ add_code(TriggerRule, Code) -> DB = oodb(),
                                CodeRecord = zql_oo_code_record:new( Db, Id ),
                                CodeRecord.
 
-add_code( ) ->                 add_code("", "").
+add_code( ) -> add_code("", "").
 
 
 
-last( Record )      -> Oodb = oodb(), 
-                       RecentlyUsed = Oodb:create_record("last_used"),
-                       LastId = RecentlyUsed:get("last"),
-                       RecentlyUsed:set( "last2", LastId ),
-                       RecentlyUsed:set( "last", Record:id() ).
+last( Record ) -> Oodb = oodb(), 
+                  RecentlyUsed = Oodb:create_record("last_used"),
+                  LastId = RecentlyUsed:get("last"),
+                  RecentlyUsed:set( "last2", LastId ),
+                  RecentlyUsed:set( "last", Record:id() ).
 
 last() ->      Oodb = oodb(),
                LastUsed = Oodb:last(),
@@ -329,10 +334,12 @@ help(Args) ->   Num = length(Args),
 
                     HelpFunctionName = Command ++ "_help",
                     apply( sh, list_to_atom( HelpFunctionName ), [ ] )
-              end.
+                end.
 
 
+list_keys() -> 0.
 
+load(Args) -> 0.
 
 start_mnesia() -> mnesia:create_schema( [ node() ] ),
                   mnesia:start(),
@@ -362,6 +369,8 @@ start() ->
                 size -> count(), continue();
 	            use -> use_connection(Args), continue();
 	            start -> start_mnesia(),continue();
+                list -> list_keys();
+                load -> load(Args), continue();
 
 	            current -> show_current_connection(), continue();
                 connections -> connections(), continue();
