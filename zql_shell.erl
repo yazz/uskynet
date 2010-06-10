@@ -339,7 +339,11 @@ help(Args) ->   Num = length(Args),
 
 list_keys() -> 0.
 
-load(Args) -> 0.
+load(Args) -> p(to_string(first_arg(Args))).
+
+first_arg([]) -> nil;
+first_arg([X]) -> X;
+first_arg([X|_]) -> X.
 
 start_mnesia() -> mnesia:create_schema( [ node() ] ),
                   mnesia:start(),
