@@ -7,6 +7,9 @@ compile_all() -> compile(zql_utils),
                  compile(zql_connections),
                  compile(zql),
 
+                 compile(zql_platform.erl),
+                 compile(zql_platform_driver_for_cygwin.erl),
+
                  compile(zql_context_helper),
                  compile(zql_oo_helper),
 
