@@ -39,7 +39,7 @@ shell() -> zql_compiler:compile_all(),
 
 test() -> zql:test().
 
-oo() -> Session = zql:create_oo_session( zql_connections:local_cassandra_connection() ),
+oo() -> Session = zql_oo_helper:create_oo_session( sys_connection() ),
         Session.
 
 mnesia() -> zql:get_connection(local_mnesia_connection).

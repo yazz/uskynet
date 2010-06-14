@@ -27,6 +27,10 @@ p("                                                                             
 p("print_all ( )                                    print all records           "),
 p("count( )                                         count the number of records "),
 p("                                                                             "),
+p("incr( Key )                                      increment this key by one   "),
+p("                                                                             "),
+p("                                                                             "),
+
 p(" Example:                                                                    "),
 p("C = [{driver,db_riak_driver}, {hostname,'riak@127.0.0.1'},{bucket,<<\"default\">>}]."),
 p("DB = session(C).                                                             "),
@@ -37,9 +41,12 @@ ok.
 
 get(Key) -> zql:get( Conn, Key ).
 
-set(Key,Value) -> zql:set(Conn, Key, Value).
+get_or_nil(Key) -> zql:get_or_nil( Conn, Key ).
 
-ls( ) -> zql:ls(Conn).
+
+set( Key, Value ) -> zql:set(Conn, Key, Value).
+
+ls( ) -> zql:ls( Conn ).
 
 print_all( ) -> zql:print_all( Conn ).
 
@@ -47,18 +54,45 @@ count( ) -> zql:count(Conn).
 
 connection() -> Conn.
 
-get_record(Key) -> zql_oo_record:new(Conn,Key).
+get_record( Key ) -> zql_oo_record:new(Conn,Key).
 
-create_record( ) -> Key = zql:create_record( Conn ),
-                    Record = zql_oo_record:new( Conn, Key ),
+create_record_help() -> 
+p("---------------------------------------------------------------------"),
+p("-                                                                   -"),
+p("-                    create_record( ConnectionArgs )                -"),
+p("-                                                                   -"),
+p("-                       This creates a new record                   -"),
+p("-                                                                   -"),
+p("         The unique ID of the record is returned as a HEX string    -"),
+p("-                                                                   -"),
+p("- Example:                                                          -"),
+p("-                                                                   -"),
+p("- ConnectionArgs = local( ).                                        -"),
+p("- print_all( ConnectionArgs ).                                      -"),
+p("---------------------------------------------------------------------").
+
+create_record( ) -> Key = uuid(),
+                    Record = create_record( Key ),
                     Record.
 
-create_record( Key ) -> RecordId = zql:create_record( Conn , Key ),
-                        Record = zql_oo_record:new( Conn, RecordId ),
+create_record( Key ) -> Record = zql_oo_record:new( Conn, Key ),
+                        Record:set( Key,"" ),
                         Record.
 
 
+incr( Key ) -> Res = get_number_or_nil( Key ),
+               Y = case Res of
+                    nil -> set( Key , "0" ),0;
+                    N -> X = N + 1,set(Key, to_string( X )),X
+               end,
+               Y.
 
+get_number_or_nil( Key ) -> Entry = get_or_nil( Key ),
+                            X = case Entry of
+                                nil -> nil;
+                                N -> I = to_integer( N ), I
+                            end,
+                            X.
 
 exists(Key) -> zql:exists(Conn,Key).
 

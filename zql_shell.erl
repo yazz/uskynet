@@ -68,7 +68,7 @@ p("-                                                                   -"),
 p("- > use connection oracle                                           -"),
 p("---------------------------------------------------------------------").
 use_connection(Args) -> ConnectionName = nth(1,Args),
-                        zql:set( zql:get_connection(system), "conn_name", ConnectionName).
+                        zql:set( get_connection(system), "conn_name", ConnectionName).
 
 
 
@@ -217,20 +217,19 @@ hello( ) -> p("Hello. System is available").
 
 
 
-oodb( ) -> DB = zql:create_oo_session( db() ),
+oodb( ) -> DB = zql_oo_helper:create_oo_session( db() ),
            DB.
 
 db() ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
 
                     Conn = case WhichConnectionToUseResult of
 
-                        [ok, ConnName] -> zql:get_connection( ConnName );
+                        [ok, ConnName] -> get_connection( ConnName );
                         [_,_] -> zql_connections:local_mnesia_connection()
 
                     end,
                     Conn.
 
-sys_connection() -> zql:get_connection(system).
 
 whichdb( ) -> zql:whichdb( db() ).
 

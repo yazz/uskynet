@@ -12,8 +12,16 @@
                 for_each_item/2,
                 content_key/1,
                 is_string/1,
+
                 to_atom/1,
+                to_integer/1,
+
+                get_connection/1,
+                sys_connection/0,
                 p/0
 		]).
+
+
+
 
 -import(lists,[nth/2]).

@@ -101,10 +101,7 @@ test_with_connection(C) ->
                 println("Check 'boy' exists :"),
                 Exists2 = exists(C, "boy"),
                 println(Exists2),
-                println("-----------------------"),
-
-                LogEntry = create_record( C ),
-                set_property(C,LogEntry,"type","log").
+                println("-----------------------").
 
 
 
@@ -411,28 +408,6 @@ set( ConnectionArgs, Key, Value ) -> set_property( ConnectionArgs, Key, value, V
 
 
 
-create_record_help() -> 
-p("---------------------------------------------------------------------"),
-p("-                                                                   -"),
-p("-                    create_record( ConnectionArgs )                -"),
-p("-                                                                   -"),
-p("-                       This creates a new record                   -"),
-p("-                                                                   -"),
-p("         The unique ID of the record is returned as a HEX string    -"),
-p("-                                                                   -"),
-p("- Example:                                                          -"),
-p("-                                                                   -"),
-p("- ConnectionArgs = local( ).                                        -"),
-p("- print_all( ConnectionArgs ).                                      -"),
-p("---------------------------------------------------------------------").
-
-create_record( C ) -> UUID = uuid(),
-                      create_record( C, UUID).
-
-
-create_record( C, Id ) -> set( C, Id , ""),
-                          Id.
-
 
 
 
@@ -659,10 +634,6 @@ delete_all( Connection , yes_im_sure ) -> Driver = get_zql_driver_name(Connectio
 
 
 
-create_oo_session( ConnectionArgs ) -> zql_oo_helper:create_oo_session( ConnectionArgs ).
-list_connections() -> zql_connections:list_connections().
-get_connection(Conn) -> ConnAsAtom = to_atom(Conn),
-                        apply( zql_connections , ConnAsAtom , [] ).
 
 
 

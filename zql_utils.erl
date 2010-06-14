@@ -2,31 +2,32 @@
 -compile(export_all).
 
 help() -> println("----------------------------------------------------------"),
-          println("-                     MODULE zprint                      -"),
-          println("- Handles all printing issues to the console             -"),
+          println("-                     MODULE utils                       -"),
+          println("-     Utility functions                                  -"),
           println("----------------------------------------------------------"),
- 
-          println("nl                    newline"),
-          println("println(Text)         prints Text plus a linefeed"),
-          println("p(Text)                     "),
-          println("print_number(N)       print number N plus a linefeed"),
+          println("                                                          "),
+          println("nl                    newline                             "),
+          println("println(Text)         prints Text plus a linefeed         "),
+          println("p(Text)                                                   "),
+          println("print_number(N)       print number N plus a linefeed      "),
           println("----------------------------------------------------------").
 
 nl() -> println("").
 
-p(Line) ->  SLine = to_string(Line),
-            println(SLine).
+p(Line) -> SLine = to_string(Line),
+           println(SLine).
+
 p() -> p("").
 
-print(Line)  ->   io:fwrite(Line).
+print(Line) -> io:fwrite(Line).
 
 q(Atom) -> String = atom_to_list(Atom),
-            p(String).
+           p(String).
 
-print_number(N) ->   io:format("~w~n", [N]).
+print_number(N) -> io:format("~w~n", [N]).
 
-println(Line)  ->   io:fwrite(Line),
-                    io:fwrite("~n").
+println(Line)  -> io:fwrite(Line),
+                  io:fwrite("~n").
 
 
 to_binary(Value) when is_binary(Value) -> Value;
@@ -60,8 +61,7 @@ to_string(S) when is_binary(S) -> binary_to_list(S).
 
 to_integer(I) when is_binary(I) -> to_integer(to_string(I));
 to_integer(I) when is_integer(I) -> I;
-to_integer(S) when is_list(S) -> 
-                                 {I,_}=string:to_integer(to_string(S)),
+to_integer(S) when is_list(S) -> {I,_}=string:to_integer(to_string(S)),
                                  I.
 
 readlines(FileName) ->
@@ -84,3 +84,11 @@ for_each_item(List, Function) ->
 
 
 content_key(Text) -> sha1:hexstring( Text ).
+
+
+get_connection(Conn) -> ConnAsAtom = to_atom(Conn),
+                        apply( zql_connections , ConnAsAtom , [] ).
+
+
+
+sys_connection() -> get_connection(system).
