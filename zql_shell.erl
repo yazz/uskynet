@@ -339,7 +339,10 @@ help(Args) ->   Num = length(Args),
 
 list_keys() -> 0.
 
-load(Args) -> p(to_string(first_arg(Args))).
+load(Args) -> FileName = first_arg(Args),
+              p(to_string(FileName)),
+              C = zql_utils:readlines(FileName),
+              print_number( length(C) ).
 
 first_arg([]) -> nil;
 first_arg([X]) -> X;
