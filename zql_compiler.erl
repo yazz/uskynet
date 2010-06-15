@@ -7,16 +7,18 @@ compile_all() -> compile(zql_utils),
                  compile(zql_connections),
                  compile(zql),
 
+
                  compile(zql_platform),
                  compile(zql_platform_driver_for_cygwin),
                  compile(zql_platform_driver_for_osx),
 
                  compile(zql_context_helper),
-                 compile(zql_oo_helper),
 
+                 compile(zql_oo_helper),
                  compile(zql_oo_session),
                  compile(zql_oo_record),
                  compile(zql_oo_code_record),
+                 compile(zql_oo_list),
 
                  compile(zql_mnesia_driver),
                  compile(zql_riak_driver),

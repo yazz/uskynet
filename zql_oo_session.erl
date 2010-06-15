@@ -18,6 +18,7 @@ p("ls ()                                                                        
 p("set (Key, Value)                                 set a value                 "),
 p("put (Key, Value)                                 set a value                 "),
 p("get (Key)                                        get the value of Key        "),
+p("get_number_or_nil (Key)                                        get the value of Key        "),
 p("get_record( Key )                                get the record stored at Key"),
 p("exists (Key)                                     does this record/Key exist  "),
 p("                                                                             "),
@@ -82,10 +83,22 @@ create_record( Key ) -> Record = zql_oo_record:new( Conn, Key ),
 
 incr( Key ) -> Res = get_number_or_nil( Key ),
                Y = case Res of
-                    nil -> set( Key , "0" ),0;
+                    nil -> set( Key , "1" ),1;
                     N -> X = N + 1,set(Key, to_string( X )),X
                end,
                Y.
+
+decr( Key ) -> Res = get_number_or_nil( Key ),
+               Y = case Res of
+                    nil -> set( Key , "-1" ),-1;
+                    N -> X = N - 1,set(Key, to_string( X )),X
+               end,
+               Y.
+
+list( ListName ) -> Oodb = zql_oo_helper:create_oo_session( Conn ),
+                    List = zql_oo_list:new( Oodb, ListName ),
+                    List.
+
 
 get_number_or_nil( Key ) -> Entry = get_or_nil( Key ),
                             X = case Entry of
