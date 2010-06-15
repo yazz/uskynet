@@ -6,10 +6,10 @@ compile_all() -> compile(zql_utils),
                  compile(zql_help),
                  compile(zql_connections),
                  compile(zql),
-                 compile(zql_lists),
 
-                 compile(zql_platform.erl),
-                 compile(zql_platform_driver_for_cygwin.erl),
+                 compile(zql_platform),
+                 compile(zql_platform_driver_for_cygwin),
+                 compile(zql_platform_driver_for_osx),
 
                  compile(zql_context_helper),
                  compile(zql_oo_helper),
