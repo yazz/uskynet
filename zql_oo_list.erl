@@ -60,3 +60,5 @@ has( Item ) -> N = "list_" ++ to_string( ListName ) ++ "_item_" ++ to_string( It
                Exists.
 
 
+
+ls() when (zql_oo_list:new( Db, ListName )):count() == 0 -> 0.
