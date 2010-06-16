@@ -328,12 +328,17 @@ get( ConnectionArgs, Key ) -> BKey = to_binary(Key),
 
 
 
-get_or_nil( ConnectionArgs, Key ) ->    Result = get( ConnectionArgs, Key),
-                                        ReturnValue = case Result of
-                                            [ok, Value] -> Value;
-                                            [_X,_Y] -> nil
-                                        end,
-                                        ReturnValue.
+get_or_nil( ConnectionArgs, Key ) ->    get_property_or_nil( ConnectionArgs, Key, value).
+
+
+get_property_or_nil( ConnectionArgs, Key, PropertyName ) -> 
+
+                                              Result = get_property( ConnectionArgs, Key, PropertyName),
+                                              ReturnValue = case Result of
+                                                  [ok, Value] -> Value;
+                                                  [_X,_Y] -> nil
+                                              end,
+                                              ReturnValue.
 
 
 

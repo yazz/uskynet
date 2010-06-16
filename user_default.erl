@@ -44,7 +44,16 @@ oo() -> Session = zql_oo_helper:create_oo_session( sys_connection() ),
 
 mnesia() -> zql:get_connection(local_mnesia_connection).
 
+start() -> init().
 init() -> zql_shell:init().
 
 gpn(Key)->zql:get_property_names(mnesia(),Key).
 set(Key,PropName,Value)->zql:set_property(mnesia(),Key,PropName,Value).
+
+
+eval(S,Value) ->
+    {ok,Scanned,_} = erl_scan:string(S ++ "."),
+    {ok,Parsed} = erl_parse:parse_exprs(Scanned),
+    Bindings = erl_eval:add_binding('X', Value, erl_eval:new_bindings()),
+    {value,Ret,_}=erl_eval:exprs(Parsed,Bindings),
+    Ret.

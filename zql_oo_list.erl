@@ -61,4 +61,14 @@ has( Item ) -> N = "list_" ++ to_string( ListName ) ++ "_item_" ++ to_string( It
 
 
 
-ls() when (zql_oo_list:new( Db, ListName )):count() == 0 -> 0.
+ls() -> X = THIS:count(),
+        L = case X of
+            0 -> [];
+            N -> ls(N)
+        end,
+        L.
+
+ls(-1) -> [];
+ls(N) -> [THIS:get(N) | ls( N - 1) ].
+
+get(N) -> Db:get_or_nil( "list_item_" ++ to_string(N)).

@@ -4,7 +4,7 @@
 
 start() -> Location = global:whereis_name(server),
            case Location of
-                undefined -> Pid = spawn( zserver, loop, []),
+                undefined -> Pid = spawn( zql_server, loop, []),
                              global:register_name(server,Pid),
                              p("Server started");
 
@@ -23,15 +23,13 @@ stop() -> Location = global:whereis_name(server),
 
 
 loop() ->   scan(),
-            timer:sleep(500),
+            p("looped"),
+            timer:sleep(60*1000),
             loop().
 
 scan() ->   %DB=user_default:getdb(),
 
-            user_default:s("count","0"),
-            user_default:s("countdone","false"),
-
-            U=user_default,
+            Db=user_default:oo(),
             
             lists:foreach(
                 fun(Record) -> protect( Record,
@@ -40,7 +38,8 @@ scan() ->   %DB=user_default:getdb(),
                                ) 
                 end, 
 
-                U:lsdb()).
+                Db:ls()
+            ).
 
 
 
@@ -51,17 +50,14 @@ protect(X,Fun) -> try(Fun(X)) of
                 end.
               
 
-check_number(RecordId) ->  
-                           R = user_default:get_record(RecordId),
-                           Type = R:get("type"),
-                           case (Type) of
-                                <<"number">> -> user_default:print(RecordId),
-                           %                     DB=user_default:getdb(),
-                                                C=user_default:g("count"),
-                                                Value = zutils:to_integer(C),
-                                                C2 = Value + 1,
-                                                user_default:s("count",zutils:to_string(C2)),
+check_number( RecordId ) -> 
+                            Db=user_default:oo(),
+                            R=Db:get_record(RecordId),
+                            
+                            Type = R:has(type),
 
-                                                ok;
+                            case Type of 
+                                true -> p( to_string(R:get_or_nil(type)) );
                                 _ -> ok
-                            end.
+                            end,
+                            ok.
