@@ -66,17 +66,24 @@ to_integer(S) when is_list(S) -> {I,_}=string:to_integer(to_string(S)),
 
 readlines(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
-    get_all_lines(Device, []).
+    get_all_lines(Device, [ ]).
 
 
 
 get_all_lines(Device, Accum) ->
     case io:get_line(Device, "") of
         eof  -> file:close(Device), Accum;
-        Line -> get_all_lines(Device, Accum ++ [Line])
+        Line -> get_all_lines(Device, Accum ++ [trim(Line)])
     end.
 
 
+trim(Line) -> L = length(Line),
+              LastChar = lists:nth( L, Line),
+              X = case LastChar of
+                10 -> lists:sublist( Line ,1, L - 1);
+                 _ -> Line
+              end,
+              X.
 
 for_each_item(List, Function) ->
 
