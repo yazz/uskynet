@@ -217,21 +217,6 @@ hello( ) -> p("Hello. System is available").
 
 
 
-oodb( ) -> DB = zql_oo_helper:create_oo_session( db() ),
-           DB.
-
-db() ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
-
-                    Conn = case WhichConnectionToUseResult of
-
-                        [ok, ConnName] -> get_connection( ConnName );
-                        [_,_] -> zql_connections:local_mnesia_connection()
-
-                    end,
-                    Conn.
-
-
-whichdb( ) -> zql:whichdb( db() ).
 
 
 

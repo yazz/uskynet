@@ -1,6 +1,6 @@
 -module(user_default).
 -compile(export_all).
--include_lib("zql_all_imports.hrl").
+-include_lib("zql_imports.hrl").
 
 
 zhelp() -> 
@@ -39,8 +39,26 @@ shell() -> zql_compiler:compile_all(),
 
 test() -> zql:test().
 
-oo() -> Session = zql_oo_helper:create_oo_session( sys_connection() ),
-        Session.
+db() -> sys_connection().
+
+count() -> (oodb()):count().
+
+oodb( ) -> DB = zql_oo_helper:create_oo_session( db() ),
+           DB.
+
+db2() ->  WhichConnectionToUseResult = zql:get(sys_connection(), "conn_name"),
+
+                    Conn = case WhichConnectionToUseResult of
+
+                        [ok, ConnName] -> get_connection( ConnName );
+                        [_,_] -> zql_connections:local_mnesia_connection()
+
+                    end,
+                    Conn.
+
+
+whichdb( ) -> zql:whichdb( db() ).
+
 
 mnesia() -> zql:get_connection(local_mnesia_connection).
 
@@ -50,10 +68,13 @@ init() -> zql_shell:init().
 gpn(Key)->zql:get_property_names(mnesia(),Key).
 set(Key,PropName,Value)->zql:set_property(mnesia(),Key,PropName,Value).
 
+new_record() -> Db = oodb(),
+                Record = Db:create_record(),
+                Record.
 
-eval(S,Value) ->
-    {ok,Scanned,_} = erl_scan:string(S ++ "."),
-    {ok,Parsed} = erl_parse:parse_exprs(Scanned),
-    Bindings = erl_eval:add_binding('X', Value, erl_eval:new_bindings()),
-    {value,Ret,_}=erl_eval:exprs(Parsed,Bindings),
-    Ret.
+add_code(Code) -> 
+    Db = oodb(),
+    CodeRecord = new_record(),
+    CodeRecord:set(code,Code),
+    CodeRecord:set(type,code),
+    ok.

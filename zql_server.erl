@@ -27,9 +27,7 @@ loop() ->   scan(),
             timer:sleep(60*1000),
             loop().
 
-scan() ->   %DB=user_default:getdb(),
-
-            Db=user_default:oo(),
+scan() ->   Db = oodb(),
             
             lists:foreach(
                 fun(Record) -> protect( Record,
@@ -51,7 +49,7 @@ protect(X,Fun) -> try(Fun(X)) of
               
 
 check_number( RecordId ) -> 
-                            Db=user_default:oo(),
+                            Db=oodb(),
                             R=Db:get_record(RecordId),
                             
                             Type = R:has(type),
@@ -61,3 +59,20 @@ check_number( RecordId ) ->
                                 _ -> ok
                             end,
                             ok.
+
+find_code() -> 
+    Db = oodb(),
+    AllCode = Db:list("code"),
+
+    lists:foreach(
+
+                fun(RecordId) -> 
+                                Record = Db:get_record(RecordId),
+                                p(to_string(Record:id())),
+                                X = eval(to_string(Record:get_or_nil(code)),nil),
+                                p("result:" ++to_string(X))
+
+                end, 
+
+                AllCode:ls()
+            ).

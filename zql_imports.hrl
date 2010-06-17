@@ -18,8 +18,13 @@
 
                 get_connection/1,
                 sys_connection/0,
-                p/0
+                p/0,
+
+                eval/1,
+                eval/2
 		]).
+
+
 
 
 

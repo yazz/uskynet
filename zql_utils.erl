@@ -99,3 +99,18 @@ get_connection(Conn) -> ConnAsAtom = to_atom(Conn),
 
 
 sys_connection() -> get_connection(system).
+
+
+eval(S) -> eval(S,nil).
+
+eval(S,Value) ->
+    {ok,Scanned,_} = erl_scan:string(S ++ "."),
+    {ok,Parsed} = erl_parse:parse_exprs(Scanned),
+    Bindings = erl_eval:add_binding('X', Value, erl_eval:new_bindings()),
+    {value,Ret,_}=erl_eval:exprs(Parsed,Bindings),
+    Ret.
+
+
+
+
+    

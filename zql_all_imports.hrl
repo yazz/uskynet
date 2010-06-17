@@ -1,5 +1,9 @@
--import( user_default,
-         [
-         ]).
+
+-import(user_default,[
+                new_record/0,
+                add_code/1,
+                oodb/0,
+                db/0
+		]).
 
 -include_lib("zql_imports.hrl").
