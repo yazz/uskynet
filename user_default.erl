@@ -62,19 +62,47 @@ whichdb( ) -> zql:whichdb( db() ).
 
 mnesia() -> zql:get_connection(local_mnesia_connection).
 
-start() -> init().
+start() -> init(),
+           zql_server:start().
 init() -> zql_shell:init().
 
+stop() -> zql_server:stop().
+
 gpn(Key)->zql:get_property_names(mnesia(),Key).
-set(Key,PropName,Value)->zql:set_property(mnesia(),Key,PropName,Value).
+set(Key,PropName,Value) ->  Db = oodb(),
+                            Db:set( Key, PropName, Value ).
+
+
+
+incr( Key ) -> Db = oodb(),
+               Db:incr( Key ).
 
 new_record() -> Db = oodb(),
                 Record = Db:create_record(),
                 Record.
 
 add_code(Code) -> 
-    Db = oodb(),
+
     CodeRecord = new_record(),
     CodeRecord:set(code,Code),
     CodeRecord:set(type,code),
     ok.
+
+ask( [ Query | MoreQueries  ] ) ->  ask_one( Query ),
+                                    ask( MoreQueries ).
+
+ask_one( Query ) -> {Left, Operator,Right} = Query,
+                    ask( Left, Operator, Right ).
+
+ask( Left, equals, Right ) -> QueryIndex = "index_" ++ to_string(Left) ++ "_equals_" ++ to_string( Right ),
+                              X = incr( QueryIndex ),
+                              set( QueryIndex, type, index_count ),
+                              Indexes = list("indexes"),
+                              Indexes:add( QueryIndex ),
+                              [{QueryIndex},{count,X}].
+
+list(ListName) -> Db = oodb(),
+                  Db:list(ListName).
+
+get( Key, Prop ) -> Db = oodb(),
+                    Db:get( Key, Prop ).

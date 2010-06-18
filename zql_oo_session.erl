@@ -42,6 +42,8 @@ ok.
 
 get(Key) -> zql:get( Conn, Key ).
 
+get(Key,Prop) -> zql:get_property( Conn, Key, Prop).
+
 get_or_nil(Key) -> zql:get_or_nil( Conn, Key ).
 
 
@@ -87,6 +89,9 @@ incr( Key ) -> Res = get_number_or_nil( Key ),
                     N -> X = N + 1,set(Key, to_string( X )),X
                end,
                Y.
+
+
+set( Key, PropName, Value ) -> zql:set_property(Conn, Key, PropName,Value).
 
 decr( Key ) -> Res = get_number_or_nil( Key ),
                Y = case Res of
