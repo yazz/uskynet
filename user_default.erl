@@ -106,3 +106,6 @@ list(ListName) -> Db = oodb(),
 
 get( Key, Prop ) -> Db = oodb(),
                     Db:get( Key, Prop ).
+
+
+foreach(List, Fn) -> ok.
