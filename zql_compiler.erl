@@ -1,7 +1,9 @@
 -module(zql_compiler).
 -compile(export_all).
 
-compile_all() -> compile(zql_utils),
+compile_all() -> 
+                 compile(sha1),
+                 compile(zql_utils),
                  compile(zql_shell),
                  compile(zql_help),
                  compile(zql_connections),
@@ -12,6 +14,7 @@ compile_all() -> compile(zql_utils),
                  compile(zql_platform_driver_for_cygwin),
                  compile(zql_platform_driver_for_osx),
                  compile(zql_platform_driver_for_n900),
+                 compile(zql_platform_driver_for_linux),
 
                  compile(zql_context_helper),
 
