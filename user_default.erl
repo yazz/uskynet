@@ -109,3 +109,7 @@ get( Key, Prop ) -> Db = oodb(),
 
 
 foreach(List, Fn) -> ok.
+
+lists() -> Db = oodb(),
+                Lists = Db:list("lists"),
+                Lists:ls().

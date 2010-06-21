@@ -44,6 +44,14 @@ add( Item  ) -> AlreadyExists = Db:exists("list_" ++ to_string( ListName ) ++ "_
                              (Next - 1);
                     true -> already_exists
                 end,
+                p(to_string(ListName) ++ "..."),
+                case to_atom(ListName) of
+                    lists -> ok;
+
+                    _ -> 
+                         Lists = Db:list(lists),
+                         Lists:add( ListName )
+                end,
                 R.
 
 count( ) -> C = Db:get_number_or_nil("list_index_" ++ to_string(ListName) ),
@@ -72,3 +80,4 @@ ls(-1) -> [];
 ls(N) -> [THIS:get(N) | ls( N - 1) ].
 
 get(N) -> Db:get_or_nil( "list_item_" ++ to_string(N)).
+
