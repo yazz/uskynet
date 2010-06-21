@@ -20,6 +20,8 @@ setup() -> mnesia:create_table(
 get_property_names( _ConnectionArgs, Key ) -> 
 
                         ReturnValue = case mnesia_get( Key ) of
+                                no_db_connection -> [no_db_connection, nil];
+
                                 [ok, Data] ->  NamesWithDuplicates = [ Prop || {Prop,_Value} <- Data ],
                                                NoDuplicatesSet = sets:from_list( NamesWithDuplicates ),
                                                UniqueList = sets:to_list( NoDuplicatesSet ),
@@ -33,10 +35,13 @@ get_property_names( _ConnectionArgs, Key ) ->
 get_property( _Conn, Key, PropertyName ) -> 
                                     Result = mnesia_get( Key ),
                                     case Result of 
+                                        no_db_connection -> [no_db_connection, nil];
+
                                         [ ok , Data ] -> Value = [ {Prop,Value} || {Prop,Value} <- Data, Prop == PropertyName ],
                                                          [ {_PN, V} | _] = Value,
                                                          [ ok, V ];
-                                        [_,_] -> Result
+
+                                        [X,Y] -> p( to_string(X) ++ ":" ++ to_string(Y) ),  Result
                                     end.
 
 
@@ -161,22 +166,21 @@ mnesia_set(Key, Val) -> Record = #data{key = Key, value = Val},
 				end,
 		        mnesia:transaction(F).
 
-mnesia_get(Key) -> Result = try
+mnesia_get(Key) -> 
 
-		   F = fun() ->
-				mnesia:read({data, Key})
-		  		end,
+    Result = try
+        F = fun() -> mnesia:read({data, Key}) end,
+        {atomic, Data} = mnesia:transaction(F),
 
-		   {atomic, Data} = mnesia:transaction(F),
-		   [{data,Key,Value}] = Data,
-                   Value
+        [{data,Key,Value}] = Data,
 
-                   of
-                     Val -> [ok,Val]
-                catch
-                     _:_Reason -> [ not_found , value ]
-		end,
-                Result.
+        Value of
+            Val -> [ok,Val]
+        catch
+            _:{badmatch,{aborted,{node_not_running,nonode@nohost}}} -> no_db_connection;
+            _:_ -> [ not_found , value ]
+        end,
+    Result.
 
 
 
@@ -218,9 +222,10 @@ delete_key( Key ) ->
         Fun = fun() ->
               List = mnesia:match_object(Delete),
 
-              lists:foreach(fun(X) ->
-                                    mnesia:delete_object(X)
-                            end, List)
+              lists:foreach(
+                            fun(X) -> mnesia:delete_object(X) end, 
+
+                            List)
         end,
         mnesia:transaction(Fun).
 
