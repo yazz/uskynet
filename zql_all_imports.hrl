@@ -4,7 +4,8 @@
                 add_code/1,
                 oodb/0,
                 db/0,
-                lists/0
+                lists/0,
+                uuid/0
 
 		]).
 

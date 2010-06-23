@@ -36,8 +36,6 @@ to_binary(Value) when is_list(Value) -> list_to_binary(Value).
 
 
 
-uuid() -> zql_platform:hex_uuid().
-
 remove_newline(Line) -> Length = length(Line),
                         NewLine = lists:sublist( Line, Length - 1),
                         NewLine.

@@ -113,3 +113,6 @@ foreach(List, Fn) -> ok.
 lists() -> Db = oodb(),
                 Lists = Db:list("lists"),
                 Lists:ls().
+				
+uuid() -> zql_platform:hex_uuid().
+

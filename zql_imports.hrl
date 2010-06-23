@@ -1,6 +1,5 @@
 
 -import(zql_utils,[
-                uuid/0,
                 to_string/1,
                 remove_newline/1,
                 println/1,
